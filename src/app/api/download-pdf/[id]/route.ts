@@ -3,21 +3,18 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-// Define a type for the context object passed to dynamic routes
-type RouteContext = {
-  params: {
-    id: string;
-  };
-};
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
 
-export async function GET(request: NextRequest, context: RouteContext) {
-  const { params } = context; // Destructure params from the context object
+  if (!id) {
+    console.error("Error: Missing required fields");
+    return new NextResponse(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
+  }
+
   try {
-    const submissionId = params.id
-
-    // Find the offer letter record
     const offerLetter = await prisma.offerLetter.findUnique({
-      where: { submissionId },
+      where: { id },
     })
 
     if (!offerLetter) {
@@ -34,7 +31,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const pdfBuffer = await response.arrayBuffer()
 
     // Create the filename
-    const fileName = `Internship_Offer_Letter_${offerLetter.firstName}_${offerLetter.lastName}_${submissionId}.pdf`
+    const fileName = `Internship_Offer_Letter_${offerLetter.firstName}_${offerLetter.lastName}_${id}.pdf`
 
     // Return the PDF with proper headers
     return new NextResponse(pdfBuffer, {
