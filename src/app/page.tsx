@@ -1,109 +1,230 @@
-import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Webhook, Database, Eye } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+// import { useToast } from "@/hooks/use-toast"
+import { Download, Eye } from "lucide-react"
 
-export default function HomePage() {
+export default function Component() {
+  const [formData, setFormData] = useState({
+    id: "",
+    first_name: "",
+    last_name: "",
+    domain: "",
+    date_time: new Date().toISOString(),
+  })
+  const [loading, setLoading] = useState(false)
+  const [response, setResponse] = useState<any>(null)
+  // const { toast } = useToast()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const res = await fetch("/api/generate-offer-letter", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setResponse(data)
+        // toast({
+        //   title: "Success!",
+        //   description: "Offer letter generated successfully",
+        // })
+      } else {
+        throw new Error(data.error || "Failed to generate offer letter")
+      }
+    } catch (error) {
+      // toast({
+      //   title: "Error",
+      //   description: error instanceof Error ? error.message : "Failed to generate offer letter",
+      //   variant: "destructive",
+      // })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="container mx-auto p-6">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Webhook Data Storage</h1>
-        <p className="text-xl text-muted-foreground">Receive and store webhook data in PostgreSQL using Prisma</p>
-      </div>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div className="container mx-auto p-6 max-w-4xl">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Webhook className="h-5 w-5" />
-              Webhook Endpoints
-            </CardTitle>
-            <CardDescription>Available endpoints for receiving webhook data</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="bg-muted p-3 rounded-md">
-              <code className="text-sm">POST /api/webhook</code>
-              <p className="text-xs text-muted-foreground mt-1">General webhook endpoint</p>
-            </div>
-            <div className="bg-muted p-3 rounded-md">
-              <code className="text-sm">POST /api/webhook/[source]</code>
-              <p className="text-xs text-muted-foreground mt-1">Source-specific webhook endpoint</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              Data Storage
-            </CardTitle>
-            <CardDescription>Automatic storage in PostgreSQL database</CardDescription>
+            <CardTitle>Generate Internship Offer Letter</CardTitle>
+            <CardDescription>Fill out the form to generate a personalized internship offer letter</CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm space-y-1">
-              <li>• JSON payload storage</li>
-              <li>• Request headers capture</li>
-              <li>• Source identification</li>
-              <li>• Event type detection</li>
-              <li>• Timestamp tracking</li>
-            </ul>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="id">Submission ID</Label>
+                <Input
+                  id="id"
+                  value={formData.id}
+                  onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                  placeholder="Enter submission ID"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="first_name">First Name</Label>
+                  <Input
+                    id="first_name"
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    placeholder="Enter first name"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="last_name">Last Name</Label>
+                  <Input
+                    id="last_name"
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                    placeholder="Enter last name"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="domain">Preferred Internship Domain</Label>
+                <Select value={formData.domain} onValueChange={(value) => setFormData({ ...formData, domain: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select internship domain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Web Development">Web Development</SelectItem>
+                    <SelectItem value="Mobile Development">Mobile Development</SelectItem>
+                    <SelectItem value="Data Science">Data Science</SelectItem>
+                    <SelectItem value="Machine Learning">Machine Learning</SelectItem>
+                    <SelectItem value="UI/UX Design">UI/UX Design</SelectItem>
+                    <SelectItem value="Digital Marketing">Digital Marketing</SelectItem>
+                    <SelectItem value="DevOps">DevOps</SelectItem>
+                    <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Generating..." : "Generate Offer Letter"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5" />
-              Monitoring
-            </CardTitle>
-            <CardDescription>View and monitor form submissions</CardDescription>
+            <CardTitle>API Response</CardTitle>
+            <CardDescription>The generated offer letter details will appear here</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <Link href="/submissions">
-              <Button className="w-full">View Form Submissions</Button>
-            </Link>
-            <Link href="/webhooks">
-              <Button variant="outline" className="w-full bg-transparent">
-                Raw Webhook Data
-              </Button>
-            </Link>
+          <CardContent>
+            {response ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h3 className="font-semibold text-green-800 mb-2">Success!</h3>
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      <strong>Submission ID:</strong> {response.submissionId}
+                    </p>
+                    <p>
+                      <strong>Candidate:</strong> {response.candidateName}
+                    </p>
+                    <p>
+                      <strong>Domain:</strong> {response.domain}
+                    </p>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex gap-2">
+                        <Button asChild size="sm" className="flex-1">
+                          <a href={response.offerLetterUrl} target="_blank" rel="noopener noreferrer">
+                            <Download className="w-4 h-4 mr-2" />
+                            Download PDF
+                          </a>
+                        </Button>
+                        <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent">
+                          <a href={response.viewUrl} target="_blank" rel="noopener noreferrer">
+                            <Eye className="w-4 h-4 mr-2" />
+                            View PDF
+                          </a>
+                        </Button>
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        <p>
+                          <strong>Download URL:</strong> {response.offerLetterUrl}
+                        </p>
+                        <p>
+                          <strong>View URL:</strong> {response.viewUrl}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-8">Submit the form to see the API response</div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Example Usage</CardTitle>
-          <CardDescription>Test your webhook endpoint with sample form data</CardDescription>
+          <CardTitle>API Documentation</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium mb-2">Form submission test:</h4>
-              <pre className="bg-muted p-3 rounded-md text-sm overflow-x-auto">
-                {`curl -X POST http://localhost:3000/api/webhook \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "formName": "Internship Application",
-    "formId": "form_123",
-    "submissionId": "sub_456",
-    "contactId": "contact_789",
-    "submissionTime": "2024-01-15T10:30:00Z",
-    "field:email_78b3": "john@example.com",
-    "field:first_name_d7a2": "John",
-    "field:last_name_1f77": "Doe",
-    "contact": {
-      "name": {"first": "John", "last": "Doe"},
-      "email": "john@example.com",
-      "contactId": "contact_789"
-    },
-    "submissions": [
-      {"label": "Email", "value": "john@example.com"},
-      {"label": "First Name", "value": "John"}
-    ]
-  }'`}
-              </pre>
+              <h3 className="font-semibold mb-2">Endpoint</h3>
+              <code className="bg-gray-100 px-2 py-1 rounded">POST /api/generate-offer-letter</code>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-2">Request Body</h3>
+              <Textarea
+                readOnly
+                value={`{
+  "id": "submission_123",
+  "first_name": "John",
+  "last_name": "Doe", 
+  "domain": "Web Development",
+  "date_time": "2024-01-15T10:30:00Z"
+}`}
+                className="font-mono text-sm"
+                rows={8}
+              />
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-2">Response</h3>
+              <Textarea
+                readOnly
+                value={`{
+  "success": true,
+  "submissionId": "submission_123",
+  "candidateName": "John Doe",
+  "domain": "Web Development", 
+  "offerLetterUrl": "http://localhost:3000/api/download-pdf/submission_123",
+  "viewUrl": "http://localhost:3000/api/view-pdf/submission_123"
+}`}
+                className="font-mono text-sm"
+                rows={10}
+              />
             </div>
           </div>
         </CardContent>

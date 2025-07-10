@@ -10,107 +10,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model FormSubmission {
-  id              String   @id @default(cuid())
-  formName        String?
-  formId          String?
-  submissionId    String?  @unique
-  contactId       String?
-  submissionTime  String?
-  submissionsLink String?
-  formFieldMask   String[] // Array of strings
-  
-  // Dynamic form fields stored as JSON
-  formFields      Json?
-  
-  // Triggered emails data
-  triggeredEmails Json?
-  
-  // Relationships
-  contact         Contact? @relation(fields: [contactId], references: [contactId])
-  submissions     FormFieldSubmission[]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+model OfferLetter {
+  id                 String   @id @default(cuid())
+  submissionId       String   @unique
+  firstName          String
+  lastName           String
+  domain             String
+  startDate          DateTime
+  endDate            DateTime
+  cloudinaryUrl      String
+  submissionDateTime DateTime
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  @@map("form_submissions")
-}
-
-model Contact {
-  id               String   @id @default(cuid())
-  contactId        String   @unique
-  email            String?
-  phone            String?
-  locale           String?
-  company          String?
-  birthdate        String?
-  jobTitle         String?
-  imageUrl         String?
-  updatedDate      String?
-  createdDate      String?
-  
-  // Name as JSON object
-  name             Json?    // {first: string, last: string}
-  
-  // Address as JSON object  
-  address          Json?    // Full address object
-  
-  // Label keys
-  labelKeys        Json?    // {items: string[]}
-  
-  // Relationships
-  formSubmissions  FormSubmission[]
-  
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  @@map("contacts")
-}
-
-model FormFieldSubmission {
-  id               String @id @default(cuid())
-  label            String
-  value            String
-  submissionId     String
-  submission       FormSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  
-  createdAt        DateTime @default(now())
-
-  @@map("form_field_submissions")
-}
-
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
-
-  @@map("users")
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("posts")
-}
-
-model WebhookLog {
-  id        String   @id @default(cuid())
-  source    String?  // Source of the webhook
-  event     String?  // Event type
-  data      Json     // Store the entire payload as JSON
-  headers   Json?    // Store request headers
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("webhook_logs")
+  @@map("offer_letters")
 }
