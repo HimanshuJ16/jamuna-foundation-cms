@@ -3,7 +3,15 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+// Define a type for the context object passed to dynamic routes
+type RouteContext = {
+  params: {
+    id: string;
+  };
+};
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  const { params } = context; // Destructure params from the context object
   try {
     const submissionId = params.id
 
