@@ -3,18 +3,13 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-
-  if (!id) {
-    console.error("Error: Missing required fields");
-    return new NextResponse(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
-  }
-
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const { id: submissionId } = await params
+
+    // Find the offer letter record
     const offerLetter = await prisma.offerLetter.findUnique({
-      where: { id },
+      where: { submissionId },
     })
 
     if (!offerLetter) {
@@ -31,7 +26,7 @@ export async function GET(request: NextRequest) {
     const pdfBuffer = await response.arrayBuffer()
 
     // Create the filename
-    const fileName = `Internship_Offer_Letter_${offerLetter.firstName}_${offerLetter.lastName}_${id}.pdf`
+    const fileName = `Internship_Offer_Letter_${offerLetter.firstName}_${offerLetter.lastName}_${submissionId}.pdf`
 
     // Return the PDF with proper headers
     return new NextResponse(pdfBuffer, {
