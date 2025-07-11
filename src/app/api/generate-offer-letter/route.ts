@@ -9,6 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { id, first_name, last_name, domain, date_time } = body
+    console.log({ id, first_name, last_name, domain, date_time });
 
     // Validate required fields
     if (!id || !first_name || !last_name || !domain) {
