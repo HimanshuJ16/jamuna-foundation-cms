@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-// import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { Download, Eye } from "lucide-react"
 import { PDFPreview } from "@/components/pdf-preview"
 
@@ -23,7 +23,6 @@ export default function Component() {
   })
   const [loading, setLoading] = useState(false)
   const [response, setResponse] = useState<any>(null)
-  // const { toast } = useToast()
 
   // Check if form is valid for preview
   const isFormValid = useMemo(() => {
@@ -47,19 +46,16 @@ export default function Component() {
 
       if (res.ok) {
         setResponse(data)
-        // toast({
-        //   title: "Success!",
-        //   description: "Offer letter generated successfully",
-        // })
+        toast("Success!", {
+          description: "Offer letter generated successfully",
+        })
       } else {
         throw new Error(data.error || "Failed to generate offer letter")
       }
     } catch (error) {
-      // toast({
-      //   title: "Error",
-      //   description: error instanceof Error ? error.message : "Failed to generate offer letter",
-      //   variant: "destructive",
-      // })
+        toast("Error", {
+          description: error instanceof Error ? error.message : "Failed to generate offer letter",
+        })
     } finally {
       setLoading(false)
     }
