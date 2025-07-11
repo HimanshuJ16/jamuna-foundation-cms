@@ -20,15 +20,24 @@ export async function POST(request: NextRequest) {
       console.log("📝 Parsing as JSON...")
       rawBody = await request.json()
       console.log("🔍 Raw JSON body received:", JSON.stringify(rawBody, null, 2))
-      console.log("🔍 Raw body keys:", Object.keys(rawBody))
 
-      // Try different possible field name variations from Wix
-      id = rawBody.id || rawBody.submissionId || rawBody.submission_id || rawBody.ID
-      first_name = rawBody.first_name || rawBody.firstName || rawBody.fname || rawBody.name?.first
-      last_name = rawBody.last_name || rawBody.lastName || rawBody.lname || rawBody.name?.last
-      domain = rawBody.domain || rawBody.internshipDomain || rawBody.preferred_domain || rawBody.field
+      // Check if data is nested inside a 'data' object (Wix format)
+      const dataSource = rawBody.data || rawBody
+
+      console.log("🔍 Data source:", JSON.stringify(dataSource, null, 2))
+      console.log("🔑 Data source keys:", Object.keys(dataSource))
+
+      // Extract fields from the correct data source
+      id = dataSource.id || dataSource.submissionId || dataSource.submission_id || dataSource.ID
+      first_name = dataSource.first_name || dataSource.firstName || dataSource.fname || dataSource.name?.first
+      last_name = dataSource.last_name || dataSource.lastName || dataSource.lname || dataSource.name?.last
+      domain = dataSource.domain || dataSource.internshipDomain || dataSource.preferred_domain || dataSource.field
       date_time =
-        rawBody.date_time || rawBody.dateTime || rawBody.timestamp || rawBody.submissionTime || rawBody.createdAt
+        dataSource.date_time ||
+        dataSource.dateTime ||
+        dataSource.timestamp ||
+        dataSource.submissionTime ||
+        dataSource.createdAt
     } else if (contentType.includes("application/x-www-form-urlencoded")) {
       console.log("📝 Parsing as form data...")
       const formData = await request.formData()
@@ -47,11 +56,6 @@ export async function POST(request: NextRequest) {
       console.log("📝 Trying to parse as form data first...")
       try {
         const formData = await request.formData()
-        console.log("🔍 Form data entries:")
-        for (const [key, value] of formData.entries()) {
-          console.log(`  ${key}: ${value}`)
-        }
-
         id = formData.get("id")?.toString()
         first_name = formData.get("first_name")?.toString()
         last_name = formData.get("last_name")?.toString()
@@ -60,47 +64,41 @@ export async function POST(request: NextRequest) {
 
         if (!id && !first_name && !last_name && !domain) {
           console.log("📝 Form data empty, trying JSON...")
-          const body = await request.json()
-          rawBody = body
-          console.log("🔍 Raw JSON body received:", JSON.stringify(rawBody, null, 2))
+          rawBody = await request.json()
+          const dataSource = rawBody.data || rawBody
 
-          id = rawBody.id || rawBody.submissionId || rawBody.submission_id
-          first_name = rawBody.first_name || rawBody.firstName || rawBody.fname
-          last_name = rawBody.last_name || rawBody.lastName || rawBody.lname
-          domain = rawBody.domain || rawBody.internshipDomain || rawBody.preferred_domain
-          date_time = rawBody.date_time || rawBody.dateTime || rawBody.timestamp
+          id = dataSource.id || dataSource.submissionId || dataSource.submission_id
+          first_name = dataSource.first_name || dataSource.firstName || dataSource.fname
+          last_name = dataSource.last_name || dataSource.lastName || dataSource.lname
+          domain = dataSource.domain || dataSource.internshipDomain || dataSource.preferred_domain
+          date_time = dataSource.date_time || dataSource.dateTime || dataSource.timestamp
         }
       } catch (formError) {
         console.log("📝 Form data failed, trying JSON...")
         rawBody = await request.json()
-        console.log("🔍 Raw JSON body received:", JSON.stringify(rawBody, null, 2))
+        const dataSource = rawBody.data || rawBody
 
-        id = rawBody.id || rawBody.submissionId || rawBody.submission_id
-        first_name = rawBody.first_name || rawBody.firstName || rawBody.fname
-        last_name = rawBody.last_name || rawBody.lastName || rawBody.lname
-        domain = rawBody.domain || rawBody.internshipDomain || rawBody.preferred_domain
-        date_time = rawBody.date_time || rawBody.dateTime || rawBody.timestamp
+        id = dataSource.id || dataSource.submissionId || dataSource.submission_id
+        first_name = dataSource.first_name || dataSource.firstName || dataSource.fname
+        last_name = dataSource.last_name || dataSource.lastName || dataSource.lname
+        domain = dataSource.domain || dataSource.internshipDomain || dataSource.preferred_domain
+        date_time = dataSource.date_time || dataSource.dateTime || dataSource.timestamp
       }
     }
 
     console.log("📋 Parsed data:", { id, first_name, last_name, domain, date_time })
-    console.log("🔍 All available fields in request:", Object.keys(rawBody))
 
-    // If we still don't have the required fields, return detailed error
+    // Validate required fields
     if (!id || !first_name || !last_name || !domain) {
+      const dataSource = rawBody.data || rawBody
       return NextResponse.json(
         {
           error: "Missing required fields",
           required: ["id", "first_name", "last_name", "domain"],
           received: { id, first_name, last_name, domain, date_time },
-          availableFields: Object.keys(rawBody),
-          rawData: rawBody,
-          suggestions: {
-            id: "Try: submissionId, submission_id, ID",
-            first_name: "Try: firstName, fname, name.first",
-            last_name: "Try: lastName, lname, name.last",
-            domain: "Try: internshipDomain, preferred_domain, field",
-          },
+          availableFields: Object.keys(dataSource),
+          rawData: dataSource,
+          isNestedInData: !!rawBody.data,
         },
         { status: 400 },
       )
@@ -199,7 +197,7 @@ export async function POST(request: NextRequest) {
         fileName,
         cloudinaryUrl,
         contentType,
-        originalFields: Object.keys(rawBody),
+        wasNestedInData: !!rawBody.data,
       },
     })
   } catch (error) {
