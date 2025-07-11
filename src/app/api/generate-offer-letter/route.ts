@@ -7,23 +7,16 @@ const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    // Parse query parameters instead of request body
+    const params = request.nextUrl.searchParams
 
-    const {
-      id,
-      first_name,
-      last_name,
-      domain,
-      date_time
-    }: {
-      id?: string
-      first_name?: string
-      last_name?: string
-      domain?: string
-      date_time?: string
-    } = body
+    const id = params.get("id") ?? undefined
+    const first_name = params.get("first_name") ?? undefined
+    const last_name = params.get("last_name") ?? undefined
+    const domain = params.get("domain") ?? undefined
+    const date_time = params.get("date_time") ?? undefined
 
-    console.log("📩 Received:", { id, first_name, last_name, domain, date_time })
+    console.log("📩 Received via query:", { id, first_name, last_name, domain, date_time })
 
     if (!id || !first_name || !last_name || !domain) {
       return NextResponse.json(
@@ -64,7 +57,7 @@ export async function POST(request: NextRequest) {
     const fileName = `Internship_Offer_Letter_${first_name}_${last_name}_${id}.pdf`
     const cloudinaryUrl = await uploadToCloudinary(pdfBuffer, fileName)
 
-    const offerLetter = await prisma.offerLetter.create({
+    await prisma.offerLetter.create({
       data: {
         submissionId: id,
         firstName: first_name,

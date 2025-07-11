@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,12 +28,12 @@ export default function Component() {
     setLoading(true)
 
     try {
-      const res = await fetch("/api/generate-offer-letter", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+      // Convert form data to query parameters
+      const query = new URLSearchParams(formData).toString()
+
+      // Send data as query parameters in the URL
+      const res = await fetch(`/api/generate-offer-letter?${query}`, {
+        method: "POST", // POST method is still used
       })
 
       const data = await res.json()
