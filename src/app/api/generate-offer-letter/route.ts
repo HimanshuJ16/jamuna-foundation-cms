@@ -7,13 +7,68 @@ const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { id, first_name, last_name, domain, date_time } = body
-    console.log({ id, first_name, last_name, domain, date_time });
+    let id, first_name, last_name, domain, date_time
+
+    // Check Content-Type to determine how to parse the body
+    const contentType = request.headers.get("content-type") || ""
+
+    console.log("📥 Content-Type:", contentType)
+
+    if (contentType.includes("application/json")) {
+      // Parse as JSON
+      console.log("📝 Parsing as JSON...")
+      const body = await request.json()
+      ;({ id, first_name, last_name, domain, date_time } = body)
+    } else if (contentType.includes("application/x-www-form-urlencoded")) {
+      // Parse as form data
+      console.log("📝 Parsing as form data...")
+      const formData = await request.formData()
+      id = formData.get("id")?.toString()
+      first_name = formData.get("first_name")?.toString()
+      last_name = formData.get("last_name")?.toString()
+      domain = formData.get("domain")?.toString()
+      date_time = formData.get("date_time")?.toString()
+    } else {
+      // Try both methods as fallback
+      console.log("📝 Trying to parse as form data first...")
+      try {
+        const formData = await request.formData()
+        id = formData.get("id")?.toString()
+        first_name = formData.get("first_name")?.toString()
+        last_name = formData.get("last_name")?.toString()
+        domain = formData.get("domain")?.toString()
+        date_time = formData.get("date_time")?.toString()
+
+        // If form data parsing didn't work, try JSON
+        if (!id && !first_name && !last_name && !domain) {
+          console.log("📝 Form data empty, trying JSON...")
+          const body = await request.json()
+          ;({ id, first_name, last_name, domain, date_time } = body)
+        }
+      } catch (formError) {
+        console.log("📝 Form data failed, trying JSON...")
+        const body = await request.json()
+        ;({ id, first_name, last_name, domain, date_time } = body)
+      }
+    }
+
+    console.log("📋 Parsed data:", { id, first_name, last_name, domain, date_time })
 
     // Validate required fields
     if (!id || !first_name || !last_name || !domain) {
-      return NextResponse.json({ error: "Missing required fields: id, first_name, last_name, domain" }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "Missing required fields: id, first_name, last_name, domain",
+          received: { id, first_name, last_name, domain, date_time },
+        },
+        { status: 400 },
+      )
+    }
+
+    // Set default date_time if not provided
+    if (!date_time) {
+      date_time = new Date().toISOString()
+      console.log("📅 Using default date_time:", date_time)
     }
 
     // Check if offer letter already exists
@@ -32,8 +87,8 @@ export async function POST(request: NextRequest) {
         submissionId: id,
         candidateName: `${existingRecord.firstName} ${existingRecord.lastName}`,
         domain: existingRecord.domain,
-        offerLetterUrl: downloadUrl, // This will download the PDF
-        viewUrl: viewUrl, // This will open PDF in browser
+        offerLetterUrl: downloadUrl,
+        viewUrl: viewUrl,
         message: "Offer letter already exists",
       })
     }
@@ -82,7 +137,7 @@ export async function POST(request: NextRequest) {
         domain,
         startDate,
         endDate,
-        cloudinaryUrl, // Store Cloudinary URL for fetching
+        cloudinaryUrl,
         submissionDateTime: new Date(date_time),
       },
     })
@@ -97,12 +152,13 @@ export async function POST(request: NextRequest) {
       submissionId: id,
       candidateName: `${first_name} ${last_name}`,
       domain,
-      offerLetterUrl: downloadUrl, // This will download the PDF
-      viewUrl: viewUrl, // This will open PDF in browser
+      offerLetterUrl: downloadUrl,
+      viewUrl: viewUrl,
       debug: {
         pdfSize: pdfBuffer.length,
         fileName,
-        cloudinaryUrl, // Internal storage URL
+        cloudinaryUrl,
+        contentType,
       },
     })
   } catch (error) {
