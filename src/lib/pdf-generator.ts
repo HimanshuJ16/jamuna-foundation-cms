@@ -56,6 +56,7 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<Buf
 
     const logoBase64 = await loadImageFromPublic("/images/logo.png")
     const signatureBase64 = await loadImageFromPublic("/images/signature.jpg")
+    const watermarkBase64 = await loadImageFromPublic("/images/watermark.jpg")
 
     // Add logo at the top (if available)
     if (logoBase64) {
@@ -64,6 +65,27 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<Buf
         console.log("✅ Logo added successfully")
       } catch (logoError) {
         console.warn("⚠️ Could not add logo:", logoError)
+      }
+    }
+
+    // Add watermark (if available)
+    if (watermarkBase64) {
+      try {
+        const pageWidth = doc.internal.pageSize.width
+        const pageHeight = doc.internal.pageSize.height
+      
+        const watermarkWidth = 120
+        const watermarkHeight = 120
+      
+        const watermarkX = (pageWidth - watermarkWidth) / 2
+        const watermarkY = (pageHeight - watermarkHeight) / 2
+      
+        doc.setGState(new (doc.GState as any)({ opacity: 0.08 }))
+        doc.addImage(watermarkBase64, "JPEG", watermarkX, watermarkY, watermarkWidth, watermarkHeight)
+        doc.setGState(new (doc.GState as any)({ opacity: 1 })) // Reset to default opacity
+        console.log("✅ Watermark added successfully")
+      } catch (watermarkError) {
+        console.warn("⚠️ Could not add watermark:", watermarkError)
       }
     }
 
@@ -95,11 +117,11 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<Buf
 
     // ID label (normal)
     doc.setFont("helvetica", "normal")
-    doc.text("ID:", pageWidth - rightMargin - 85, 70)
+    doc.text("Id:", pageWidth - rightMargin - 87, 70)
 
     // ID value (bold)
     doc.setFont("helvetica", "bold")
-    doc.text(data.submissionId, pageWidth - rightMargin - 78, 70) // adjust spacing as needed
+    doc.text(data.submissionId, pageWidth - rightMargin - 82, 70) // adjust spacing as needed
 
 
     // Dear section
