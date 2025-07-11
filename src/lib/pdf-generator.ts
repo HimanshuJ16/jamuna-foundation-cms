@@ -8,6 +8,37 @@ interface OfferLetterData {
   submissionId: string
 }
 
+// Function to load image from public folder (for server-side)
+async function loadImageFromPublic(imagePath: string): Promise<string> {
+  try {
+    // For server-side, we'll use a placeholder or fetch from the public URL
+    const publicUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}${imagePath}`
+
+    const response = await fetch(publicUrl)
+    if (!response.ok) {
+      console.warn(`Could not load image from ${publicUrl}`)
+      return ""
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const base64 = buffer.toString("base64")
+
+    // Determine mime type from file extension
+    let mimeType = "image/png"
+    if (imagePath.includes(".jpg") || imagePath.includes(".jpeg")) {
+      mimeType = "image/jpeg"
+    } else if (imagePath.includes(".gif")) {
+      mimeType = "image/gif"
+    }
+
+    return `data:${mimeType};base64,${base64}`
+  } catch (error) {
+    console.warn(`Warning: Could not load image ${imagePath}:`, error)
+    return ""
+  }
+}
+
 export async function generateOfferLetterPDF(data: OfferLetterData): Promise<Buffer> {
   try {
     console.log("📄 Starting PDF generation with data:", data)
@@ -15,71 +46,217 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<Buf
     const doc = new jsPDF()
 
     // Set margins
-    const leftMargin = 20
-    const rightMargin = 20
+    const leftMargin = 13
+    const rightMargin = 13
     const pageWidth = doc.internal.pageSize.width
     const centerX = pageWidth / 2
+
+    // Load images from public folder
+    console.log("🖼️ Loading images from public folder...")
+
+    const logoBase64 = await loadImageFromPublic("/images/logo.png")
+    const signatureBase64 = await loadImageFromPublic("/images/signature.jpg")
+
+    // Add logo at the top (if available)
+    if (logoBase64) {
+      try {
+        doc.addImage(logoBase64, "PNG", centerX - 50, 5, 105, 35) // Centered logo, 105x35 size (ratio 3:1)
+        console.log("✅ Logo added successfully")
+      } catch (logoError) {
+        console.warn("⚠️ Could not add logo:", logoError)
+      }
+    }
 
     // Title - INTERNSHIP OFFER LETTER (centered, bold, large)
     doc.setFontSize(18)
     doc.setFont("helvetica", "bold")
-    doc.text("INTERNSHIP OFFER LETTER", centerX, 40, { align: "center" })
+    doc.text("INTERNSHIP OFFER LETTER", centerX, 55, { align: "center" })
+
+    // Divider line after title
+    doc.setDrawColor(0) // black color
+    doc.setLineWidth(0.2)
+    doc.line(leftMargin, 60, pageWidth - rightMargin, 60) // from left to right
 
     // Date and ID on same line
     doc.setFontSize(12)
+
+    const today = new Date()
+    const nextDay = new Date(today)
+    nextDay.setDate(today.getDate() + 1)
+    const nextDateFormatted = nextDay.toLocaleDateString("en-GB")
+
+    // Date label (normal)
     doc.setFont("helvetica", "normal")
-    const currentDate = new Date().toLocaleDateString("en-GB") // DD/MM/YYYY format
-    doc.text(`Date : ${currentDate}`, leftMargin, 60)
-    doc.text(`ID:${data.submissionId}`, pageWidth - rightMargin - 40, 60)
+    doc.text("Date:", leftMargin, 70)
+
+    // Date value (bold)
+    doc.setFont("helvetica", "bold")
+    doc.text(nextDateFormatted, leftMargin + 11, 70) // adjust spacing as needed
+
+    // ID label (normal)
+    doc.setFont("helvetica", "normal")
+    doc.text("ID:", pageWidth - rightMargin - 85, 70)
+
+    // ID value (bold)
+    doc.setFont("helvetica", "bold")
+    doc.text(data.submissionId, pageWidth - rightMargin - 78, 70) // adjust spacing as needed
+
 
     // Dear section
-    doc.text("Dear,", leftMargin, 80)
+    doc.setFont("helvetica", "normal")
+    doc.text("Dear,", leftMargin, 90)
     doc.setFont("helvetica", "bold")
-    doc.text(`            ${data.candidateName}`, leftMargin, 95)
+    doc.text(`            ${data.candidateName}`, leftMargin, 97)
 
     // Main body paragraph 1
-    doc.setFont("helvetica", "normal")
-    const bodyText1 = `We would like to congratulate you on being selected for the "${data.domain}" virtual internship position with "CodSoft". We at CodSoft are excited that you will join our team.`
+    const paragraphParts = [
+      { text: 'We would like to congratulate you on being selected for the "', style: 'normal' },
+      { text: data.domain, style: 'bold' },
+      { text: `" virtual internship position with "`, style: 'normal' },
+      { text: 'Jamuna Foundation', style: 'bold' },
+      { text: `". We at `, style: 'normal' },
+      { text: 'Jamuna Foundation', style: 'bold' },
+      { text: ' are excited that you will join our team.', style: 'normal' },
+    ]
 
-    // Split long text into multiple lines
-    const splitText1 = doc.splitTextToSize(bodyText1, pageWidth - leftMargin - rightMargin)
-    doc.text(splitText1, leftMargin, 110)
+    let x = leftMargin
+    let y = 110
+    const lineHeight = 7
+    const maxWidth = pageWidth - rightMargin
 
+    for (const part of paragraphParts) {
+      const words = part.text.split(" ")
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i] + (i < words.length - 1 ? " " : "")
+        doc.setFont("helvetica", part.style)
+        const wordWidth = doc.getTextWidth(word)
+      
+        if (x + wordWidth > maxWidth) {
+          y += lineHeight
+          x = leftMargin
+        }
+      
+        doc.text(word, x, y)
+        x += wordWidth
+      }
+    }
+    
     // Main body paragraph 2
-    const bodyText2 = `The duration of the internship will be of 4 weeks, starting from ${data.startDate} to ${data.endDate}. The internship is an educational opportunity for you hence the primary focus is on learning and developing new skills and gaining hands-on knowledge. We believe that you will perform all your tasks/projects.`
+    const para2Parts = [
+      { text: 'The duration of the internship will be of ', style: 'normal' },
+      { text: '4 weeks, ', style: 'bold' },
+      { text: 'starting from ', style: 'normal' },
+      { text: data.startDate, style: 'bold' },
+      { text: ' to ', style: 'normal' },
+      { text: data.endDate, style: 'bold' },
+      { text: '. The internship is an educational opportunity for you hence the primary focus is on learning and developing new skills and gaining hands-on knowledge. We believe that you will perform all your tasks/projects.', style: 'normal' },
+    ]
 
-    const splitText2 = doc.splitTextToSize(bodyText2, pageWidth - leftMargin - rightMargin)
-    doc.text(splitText2, leftMargin, 135)
+    x = leftMargin
+    y = 135
+
+    for (const part of para2Parts) {
+      const words = part.text.split(" ")
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i] + (i < words.length - 1 ? " " : "")
+        doc.setFont("helvetica", part.style)
+        const wordWidth = doc.getTextWidth(word)
+      
+        if (x + wordWidth > pageWidth - rightMargin) {
+          y += lineHeight
+          x = leftMargin
+        }
+      
+        doc.text(word, x, y)
+        x += wordWidth
+      }
+    }
+
 
     // Main body paragraph 3
-    const bodyText3 =
-      "As an intern, we expect you to perform all assigned tasks to the best of your ability and follow any lawful and reasonable instructions provided to you."
+    const bodyText3 = "As an intern, we expect you to perform all assigned tasks to the best of your ability and follow any lawful and reasonable instructions provided to you."
 
-    const splitText3 = doc.splitTextToSize(bodyText3, pageWidth - leftMargin - rightMargin)
-    doc.text(splitText3, leftMargin, 165)
+    x = leftMargin
+    y = 167
+    doc.setFont("helvetica", "normal")
 
+    const words3 = bodyText3.split(" ")
+    for (let i = 0; i < words3.length; i++) {
+      const word = words3[i] + (i < words3.length - 1 ? " " : "")
+      const wordWidth = doc.getTextWidth(word)
+    
+      if (x + wordWidth > pageWidth - rightMargin) {
+        y += lineHeight
+        x = leftMargin
+      }
+    
+      doc.text(word, x, y)
+      x += wordWidth
+    }
+    
     // Main body paragraph 4
-    const bodyText4 =
-      "We are confident that this internship will be a valuable experience for you, we look forward to working with you and helping you achieve your career goals."
+    const bodyText4 = "We are confident that this internship will be a valuable experience for you, we look forward to working with you and helping you achieve your career goals."
 
-    const splitText4 = doc.splitTextToSize(bodyText4, pageWidth - leftMargin - rightMargin)
-    doc.text(splitText4, leftMargin, 185)
+    x = leftMargin
+    y = 186
+    doc.setFont("helvetica", "normal")
+
+    const words4 = bodyText4.split(" ")
+    for (let i = 0; i < words4.length; i++) {
+      const word = words4[i] + (i < words4.length - 1 ? " " : "")
+      const wordWidth = doc.getTextWidth(word)
+    
+      if (x + wordWidth > pageWidth - rightMargin) {
+        y += lineHeight
+        x = leftMargin
+      }
+    
+      doc.text(word, x, y)
+      x += wordWidth
+    }
 
     // Main body paragraph 5
-    const bodyText5 =
-      "By accepting this offer, you commit to executing assigned tasks diligently and ensuring excellence in all aspects of your work."
+    const bodyText5 = "By accepting this offer, you commit to executing assigned tasks diligently and ensuring excellence in all aspects of your work."
 
-    const splitText5 = doc.splitTextToSize(bodyText5, pageWidth - leftMargin - rightMargin)
-    doc.text(splitText5, leftMargin, 205)
+    x = leftMargin
+    y = 205
+    doc.setFont("helvetica", "normal")
+
+    const words5 = bodyText5.split(" ")
+    for (let i = 0; i < words5.length; i++) {
+      const word = words5[i] + (i < words5.length - 1 ? " " : "")
+      const wordWidth = doc.getTextWidth(word)
+    
+      if (x + wordWidth > pageWidth - rightMargin) {
+        y += lineHeight
+        x = leftMargin
+      }
+    
+      doc.text(word, x, y)
+      x += wordWidth
+    }
 
     // Closing
-    doc.text("Best of Luck!", leftMargin, 230)
-    doc.text("Thank You!", leftMargin, 245)
+    doc.text("Best of Luck!", leftMargin, 225)
+    doc.setFont("helvetica", "bold")
+    doc.text("Thank You!", leftMargin, 240)
+
+    // Add signature (if available)
+    if (signatureBase64) {
+      try {
+        doc.addImage(signatureBase64, "PNG", leftMargin, 255, 40, 16) // Signature above "Founder"
+        console.log("✅ Signature added successfully")
+      } catch (signatureError) {
+        console.warn("⚠️ Could not add signature:", signatureError)
+      }
+    }
 
     // Footer section
     doc.setFontSize(11)
-    doc.text("Founder (CodSoft)", leftMargin, 270)
-    doc.text("MSME Registered", pageWidth - rightMargin - 40, 270)
+    doc.setFont("helvetica", "bold")
+    doc.text("President", leftMargin + 11, 280)
+    doc.text("(Jamuna Foundation)", leftMargin, 285)
+    // doc.text("MSME Registered", pageWidth - rightMargin - 40, 285)
 
     // Generate PDF buffer
     const pdfArrayBuffer = doc.output("arraybuffer")

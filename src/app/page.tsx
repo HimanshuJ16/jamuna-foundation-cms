@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 // import { useToast } from "@/hooks/use-toast"
 import { Download, Eye } from "lucide-react"
+import { PDFPreview } from "@/components/pdf-preview"
 
 export default function Component() {
   const [formData, setFormData] = useState({
@@ -23,6 +24,11 @@ export default function Component() {
   const [loading, setLoading] = useState(false)
   const [response, setResponse] = useState<any>(null)
   // const { toast } = useToast()
+
+  // Check if form is valid for preview
+  const isFormValid = useMemo(() => {
+    return !!(formData.id && formData.first_name && formData.last_name && formData.domain)
+  }, [formData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,129 +66,141 @@ export default function Component() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Generate Internship Offer Letter</CardTitle>
-            <CardDescription>Fill out the form to generate a personalized internship offer letter</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="id">Submission ID</Label>
-                <Input
-                  id="id"
-                  value={formData.id}
-                  onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                  placeholder="Enter submission ID"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+    <div className="container mx-auto p-6 max-w-7xl">
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Left Column - Form and Response */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Generate Internship Offer Letter</CardTitle>
+              <CardDescription>Fill out the form to generate a personalized internship offer letter</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first_name">First Name</Label>
+                  <Label htmlFor="id">Submission ID</Label>
                   <Input
-                    id="first_name"
-                    value={formData.first_name}
-                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                    placeholder="Enter first name"
+                    id="id"
+                    value={formData.id}
+                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                    placeholder="Enter submission ID"
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">Last Name</Label>
-                  <Input
-                    id="last_name"
-                    value={formData.last_name}
-                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                    placeholder="Enter last name"
-                    required
-                  />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input
+                      id="first_name"
+                      value={formData.first_name}
+                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                      placeholder="Enter first name"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input
+                      id="last_name"
+                      value={formData.last_name}
+                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                      placeholder="Enter last name"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="domain">Preferred Internship Domain</Label>
-                <Select value={formData.domain} onValueChange={(value) => setFormData({ ...formData, domain: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select internship domain" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Web Development">Web Development</SelectItem>
-                    <SelectItem value="Mobile Development">Mobile Development</SelectItem>
-                    <SelectItem value="Data Science">Data Science</SelectItem>
-                    <SelectItem value="Machine Learning">Machine Learning</SelectItem>
-                    <SelectItem value="UI/UX Design">UI/UX Design</SelectItem>
-                    <SelectItem value="Digital Marketing">Digital Marketing</SelectItem>
-                    <SelectItem value="DevOps">DevOps</SelectItem>
-                    <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="domain">Preferred Internship Domain</Label>
+                  <Select
+                    value={formData.domain}
+                    onValueChange={(value) => setFormData({ ...formData, domain: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select internship domain" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Web Development">Web Development</SelectItem>
+                      <SelectItem value="Mobile Development">Mobile Development</SelectItem>
+                      <SelectItem value="Data Science">Data Science</SelectItem>
+                      <SelectItem value="Machine Learning">Machine Learning</SelectItem>
+                      <SelectItem value="UI/UX Design">UI/UX Design</SelectItem>
+                      <SelectItem value="Digital Marketing">Digital Marketing</SelectItem>
+                      <SelectItem value="DevOps">DevOps</SelectItem>
+                      <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
+                      <SelectItem value="Android App Development">Android App Development</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Generating..." : "Generate Offer Letter"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Generating..." : "Generate Offer Letter"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>API Response</CardTitle>
-            <CardDescription>The generated offer letter details will appear here</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {response ? (
-              <div className="space-y-4">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <h3 className="font-semibold text-green-800 mb-2">Success!</h3>
-                  <div className="space-y-2 text-sm">
-                    <p>
-                      <strong>Submission ID:</strong> {response.submissionId}
-                    </p>
-                    <p>
-                      <strong>Candidate:</strong> {response.candidateName}
-                    </p>
-                    <p>
-                      <strong>Domain:</strong> {response.domain}
-                    </p>
-                    <div className="mt-4 space-y-2">
-                      <div className="flex gap-2">
-                        <Button asChild size="sm" className="flex-1">
-                          <a href={response.offerLetterUrl} target="_blank" rel="noopener noreferrer">
-                            <Download className="w-4 h-4 mr-2" />
-                            Download PDF
-                          </a>
-                        </Button>
-                        <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent">
-                          <a href={response.viewUrl} target="_blank" rel="noopener noreferrer">
-                            <Eye className="w-4 h-4 mr-2" />
-                            View PDF
-                          </a>
-                        </Button>
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        <p>
-                          <strong>Download URL:</strong> {response.offerLetterUrl}
-                        </p>
-                        <p>
-                          <strong>View URL:</strong> {response.viewUrl}
-                        </p>
+          {/* API Response Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>API Response</CardTitle>
+              <CardDescription>The generated offer letter details will appear here</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {response ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h3 className="font-semibold text-green-800 mb-2">Success!</h3>
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        <strong>Submission ID:</strong> {response.submissionId}
+                      </p>
+                      <p>
+                        <strong>Candidate:</strong> {response.candidateName}
+                      </p>
+                      <p>
+                        <strong>Domain:</strong> {response.domain}
+                      </p>
+                      <div className="mt-4 space-y-2">
+                        <div className="flex gap-2">
+                          <Button asChild size="sm" className="flex-1">
+                            <a href={response.offerLetterUrl} target="_blank" rel="noopener noreferrer">
+                              <Download className="w-4 h-4 mr-2" />
+                              Download PDF
+                            </a>
+                          </Button>
+                          <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent">
+                            <a href={response.viewUrl} target="_blank" rel="noopener noreferrer">
+                              <Eye className="w-4 h-4 mr-2" />
+                              View PDF
+                            </a>
+                          </Button>
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          <p>
+                            <strong>Download URL:</strong> {response.offerLetterUrl}
+                          </p>
+                          <p>
+                            <strong>View URL:</strong> {response.viewUrl}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-8">Submit the form to see the API response</div>
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">Submit the form to see the API response</div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Live Preview */}
+        <PDFPreview formData={formData} isFormValid={isFormValid} />
       </div>
 
+      {/* API Documentation */}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>API Documentation</CardTitle>
@@ -190,8 +208,13 @@ export default function Component() {
         <CardContent>
           <div className="space-y-4">
             <div>
-              <h3 className="font-semibold mb-2">Endpoint</h3>
+              <h3 className="font-semibold mb-2">Main Endpoint</h3>
               <code className="bg-gray-100 px-2 py-1 rounded">POST /api/generate-offer-letter</code>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-2">Preview Endpoint</h3>
+              <code className="bg-gray-100 px-2 py-1 rounded">POST /api/preview-pdf</code>
             </div>
 
             <div>
@@ -225,6 +248,20 @@ export default function Component() {
                 className="font-mono text-sm"
                 rows={10}
               />
+            </div>
+
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="font-semibold text-blue-800 mb-2">📁 Image Setup Instructions</h3>
+              <div className="text-blue-700 text-sm space-y-1">
+                <p>
+                  1. Add your company logo: <code>public/images/logo.png</code>
+                </p>
+                <p>
+                  2. Add founder signature: <code>public/images/signature.png</code>
+                </p>
+                <p>3. Recommended logo size: 120x60px (2:1 ratio)</p>
+                <p>4. Recommended signature size: 150x50px (3:1 ratio)</p>
+              </div>
             </div>
           </div>
         </CardContent>

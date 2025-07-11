@@ -134,10 +134,33 @@ export async function POST(request: NextRequest) {
     // Calculate internship dates (4 weeks duration as per template)
     const submissionDate = new Date(date_time)
     const startDate = new Date(submissionDate)
-    startDate.setDate(startDate.getDate() + 7)
 
-    const endDate = new Date(startDate)
-    endDate.setDate(endDate.getDate() + 28)
+    const day = submissionDate.getDate()
+    const month = submissionDate.getMonth()
+    const year = submissionDate.getFullYear()
+
+    if (day >= 1 && day <= 12) {
+      // Start on 15th of the same month
+      startDate.setFullYear(year)
+      startDate.setMonth(month)
+      startDate.setDate(15)
+    } else {
+      // Start on 1st of next month
+      startDate.setFullYear(year)
+      startDate.setMonth(month + 1)
+      startDate.setDate(1)
+    }
+
+    let endDate: Date
+
+    if (startDate.getDate() === 15) {
+      // +30 days
+      endDate = new Date(startDate)
+      endDate.setDate(endDate.getDate() + 30)
+    } else {
+      // End on last day of that month
+      endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0) // Day 0 = last day of current month
+    }
 
     // Generate PDF
     console.log("📄 Generating PDF...")
