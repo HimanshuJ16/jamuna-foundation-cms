@@ -8,72 +8,62 @@ const prisma = new PrismaClient()
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, first_name, last_name, domain, date_time } = body
-    console.log({ id, first_name, last_name, domain, date_time });
 
-    // Validate required fields
+    const {
+      id,
+      first_name,
+      last_name,
+      domain,
+      date_time
+    }: {
+      id?: string
+      first_name?: string
+      last_name?: string
+      domain?: string
+      date_time?: string
+    } = body
+
+    console.log("📩 Received:", { id, first_name, last_name, domain, date_time })
+
     if (!id || !first_name || !last_name || !domain) {
-      return NextResponse.json({ error: "Missing required fields: id, first_name, last_name, domain" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Missing required fields: id, first_name, last_name, domain" },
+        { status: 400 }
+      )
     }
 
-    // Check if offer letter already exists
-    const existingRecord = await prisma.offerLetter.findUnique({
-      where: { submissionId: id },
-    })
+    const existing = await prisma.offerLetter.findUnique({ where: { submissionId: id } })
 
-    if (existingRecord) {
-      // Generate the download and view URLs
+    if (existing) {
       const baseUrl = request.nextUrl.origin
-      const downloadUrl = `${baseUrl}/api/download-pdf/${id}`
-      const viewUrl = `${baseUrl}/api/view-pdf/${id}`
-
       return NextResponse.json({
         success: true,
         submissionId: id,
-        candidateName: `${existingRecord.firstName} ${existingRecord.lastName}`,
-        domain: existingRecord.domain,
-        offerLetterUrl: downloadUrl, // This will download the PDF
-        viewUrl: viewUrl, // This will open PDF in browser
+        candidateName: `${existing.firstName} ${existing.lastName}`,
+        domain: existing.domain,
+        offerLetterUrl: `${baseUrl}/api/download-pdf/${id}`,
+        viewUrl: `${baseUrl}/api/view-pdf/${id}`,
         message: "Offer letter already exists",
       })
     }
 
-    // Calculate internship dates (4 weeks duration as per template)
-    const submissionDate = new Date(date_time)
+    const submissionDate = date_time ? new Date(date_time) : new Date()
     const startDate = new Date(submissionDate)
-    startDate.setDate(startDate.getDate() + 7) // Start 1 week after submission
-
+    startDate.setDate(startDate.getDate() + 7)
     const endDate = new Date(startDate)
-    endDate.setDate(endDate.getDate() + 28) // 4 weeks (28 days) duration
+    endDate.setDate(endDate.getDate() + 28)
 
-    // Generate PDF
-    console.log("📄 Generating PDF...")
     const pdfBuffer = await generateOfferLetterPDF({
       candidateName: `${first_name} ${last_name}`,
       domain,
-      startDate: startDate.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }),
-      endDate: endDate.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }),
+      startDate: startDate.toLocaleDateString("en-GB"),
+      endDate: endDate.toLocaleDateString("en-GB"),
       submissionId: id,
     })
 
-    console.log(`✅ PDF generated, size: ${pdfBuffer.length} bytes`)
-
-    // Upload to Cloudinary (for storage)
     const fileName = `Internship_Offer_Letter_${first_name}_${last_name}_${id}.pdf`
-    console.log("☁️ Uploading to Cloudinary...")
     const cloudinaryUrl = await uploadToCloudinary(pdfBuffer, fileName)
 
-    console.log(`✅ Upload successful: ${cloudinaryUrl}`)
-
-    // Store in database
     const offerLetter = await prisma.offerLetter.create({
       data: {
         submissionId: id,
@@ -82,37 +72,34 @@ export async function POST(request: NextRequest) {
         domain,
         startDate,
         endDate,
-        cloudinaryUrl, // Store Cloudinary URL for fetching
-        submissionDateTime: new Date(date_time),
+        cloudinaryUrl,
+        submissionDateTime: submissionDate,
       },
     })
 
-    // Generate the download and view URLs
     const baseUrl = request.nextUrl.origin
-    const downloadUrl = `${baseUrl}/api/download-pdf/${id}`
-    const viewUrl = `${baseUrl}/api/view-pdf/${id}`
 
     return NextResponse.json({
       success: true,
       submissionId: id,
       candidateName: `${first_name} ${last_name}`,
       domain,
-      offerLetterUrl: downloadUrl, // This will download the PDF
-      viewUrl: viewUrl, // This will open PDF in browser
+      offerLetterUrl: `${baseUrl}/api/download-pdf/${id}`,
+      viewUrl: `${baseUrl}/api/view-pdf/${id}`,
       debug: {
         pdfSize: pdfBuffer.length,
         fileName,
-        cloudinaryUrl, // Internal storage URL
+        cloudinaryUrl,
       },
     })
   } catch (error) {
-    console.error("Error generating offer letter:", error)
+    console.error("❌ Error generating offer letter:", error)
     return NextResponse.json(
       {
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }
