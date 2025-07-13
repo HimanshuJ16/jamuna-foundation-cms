@@ -112,7 +112,6 @@ export async function POST(request: NextRequest) {
       startDate: formattedStartDate,
       endDate: formattedEndDate,
       submissionId: submission_id,
-      tasksPerformed: tasks_performed || "0",
       email: email || "",
     })
 

@@ -6,7 +6,6 @@ interface CertificateData {
   startDate: string
   endDate: string
   submissionId: string
-  tasksPerformed: string
   email: string
 }
 
@@ -119,12 +118,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
     const signatureBase64 = await loadImageFromPublic("/images/signature.jpg")
     const watermarkBase64 = await loadImageFromPublic("/images/watermark.jpg")
 
-    // Load additional certificate elements (you can add these to your public/images folder)
-    // const msmeLogoBase664 = await loadImageFromPublic("/images/msme-logo.png")
-    // const govIndiaBase64 = await loadImageFromPublic("/images/gov-india-logo.png")
-    // const isoBase64 = await loadImageFromPublic("/images/iso-logo.png")
-
-    // Add CodSoft logo (top right)
+    // Add logo (top right)
     if (logoBase64) {
       try {
         doc.addImage(logoBase64, "PNG", 30, 15, 60, 10)
@@ -236,18 +230,6 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
     // Bottom section with logos and signature
     const bottomY = pageHeight - 60
 
-    // Founder signature
-    // if (signatureBase64) {
-    //   try {
-    //     doc.addImage(signatureBase64, "PNG", 80, bottomY - 15, 40, 15)
-    //     doc.setFontSize(10)
-    //     doc.text("Founder", 100, bottomY + 5, { align: "center" })
-    //     console.log("✅ Signature added successfully")
-    //   } catch (signatureError) {
-    //     console.warn("⚠️ Could not add signature:", signatureError)
-    //   }
-    // }
-
     // Add signature (if available)
     if (signatureBase64) {
       try {
@@ -263,24 +245,6 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
     doc.setFont("Poppins", "bold")
     doc.text("President",leftMargin + 11, 172)
     doc.text("(Jamuna Foundation)", leftMargin, 177)
-
-
-    // QR Code (left side)
-    // try {
-    //   const qrCodeUrl = await fetch(generateQRCodeDataURL(`Certificate ID: ${data.submissionId}`))
-    //   if (qrCodeUrl.ok) {
-    //     const qrBlob = await qrCodeUrl.arrayBuffer()
-    //     const qrBase64 = `data:image/png;base64,${Buffer.from(qrBlob).toString("base64")}`
-    //     doc.addImage(qrBase64, "PNG", 30, bottomY - 20, 25, 25)
-    //   }
-    // } catch (qrError) {
-    //   console.warn("⚠️ Could not add QR code:", qrError)
-    //   // Add placeholder QR code box
-    //   doc.setDrawColor(0, 0, 0)
-    //   doc.rect(30, bottomY - 20, 25, 25)
-    //   doc.setFontSize(8)
-    //   doc.text("QR", 42, bottomY - 7, { align: "center" })
-    // }
 
     // QR Code (right side)
     try {

@@ -460,7 +460,7 @@ export default function CertificatePage() {
                 </p>
                 <p className="mt-2 font-medium">Required images (already configured):</p>
                 <p>
-                  • <code>public/images/codsoft-logo.png</code> - Company logo
+                  • <code>public/images/logo.png</code> - Company logo
                 </p>
                 <p>
                   • <code>public/images/signature.png</code> - Founder signature
