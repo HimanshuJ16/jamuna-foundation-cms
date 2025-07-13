@@ -18,7 +18,6 @@ function formatDate(dateStr: string): string {
   });
 }
 
-
 // Function to load image from public folder
 async function loadImageFromPublic(imagePath: string): Promise<string> {
   try {

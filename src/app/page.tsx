@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
-import { Download, Eye } from "lucide-react"
+import { Download, Eye, Award } from "lucide-react"
 import { PDFPreview } from "@/components/pdf-preview"
 
 export default function Component() {
@@ -63,6 +63,14 @@ export default function Component() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <Award className="w-8 h-8" />
+          Offer Letter Generator
+        </h1>
+        <p className="text-muted-foreground">Generate internship offer letters</p>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Left Column - Form and Response */}
         <div className="space-y-6">
