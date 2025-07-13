@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { generateOfferLetterPDF } from "@/lib/pdf-generator"
+import { generateOfferLetterPDF } from "@/lib/offer-letter-generator"
 
 export async function POST(request: NextRequest) {
   try {

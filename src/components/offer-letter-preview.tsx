@@ -31,7 +31,7 @@ export function PDFPreview({ formData, isFormValid }: PDFPreviewProps) {
     setError("")
 
     try {
-      const response = await fetch("/api/preview-pdf", {
+      const response = await fetch("/api/offer-letter/preview-offer-letter", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
 
     if (existingCertificate) {
       const baseUrl = request.nextUrl.origin
-      const downloadUrl = `${baseUrl}/api/download-certificate/${submission_id}`
-      const viewUrl = `${baseUrl}/api/view-certificate/${submission_id}`
+      const downloadUrl = `${baseUrl}/api/certificate/download-certificate/${submission_id}`
+      const viewUrl = `${baseUrl}/api/certificate/view-certificate/${submission_id}`
 
       return NextResponse.json({
         success: true,
@@ -160,8 +160,8 @@ export async function POST(request: NextRequest) {
 
     // Generate URLs
     const baseUrl = request.nextUrl.origin
-    const downloadUrl = `${baseUrl}/api/download-certificate/${submission_id}`
-    const viewUrl = `${baseUrl}/api/view-certificate/${submission_id}`
+    const downloadUrl = `${baseUrl}/api/certificate/download-certificate/${submission_id}`
+    const viewUrl = `${baseUrl}/api/certificate/view-certificate/${submission_id}`
 
     return NextResponse.json({
       success: true,

@@ -278,7 +278,6 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<Buf
     doc.setFont("helvetica", "bold")
     doc.text("President", leftMargin + 11, 280)
     doc.text("(Jamuna Foundation)", leftMargin, 285)
-    // doc.text("MSME Registered", pageWidth - rightMargin - 40, 285)
 
     // Generate PDF buffer
     const pdfArrayBuffer = doc.output("arraybuffer")

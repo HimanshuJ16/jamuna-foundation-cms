@@ -34,7 +34,7 @@ export function CertificatePreview({ formData, isFormValid }: CertificatePreview
     setError("")
 
     try {
-      const response = await fetch("/api/preview-certificate", {
+      const response = await fetch("/api/certificate/preview-certificate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

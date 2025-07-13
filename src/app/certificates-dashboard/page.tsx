@@ -44,7 +44,7 @@ export default function CertificatesDashboard() {
         ...(domain !== "All domains" && { domain }),
       })
 
-      const response = await fetch(`/api/list-certificates?${params}`)
+      const response = await fetch(`/api/certificate/list-certificates?${params}`)
       const data = await response.json()
 
       if (data.success) {
@@ -183,7 +183,7 @@ export default function CertificatesDashboard() {
                 <div className="flex gap-2">
                   <Button asChild size="sm">
                     <a
-                      href={`/api/download-certificate/${cert.submissionId}`}
+                      href={`/api/certificate/download-certificate/${cert.submissionId}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -192,14 +192,14 @@ export default function CertificatesDashboard() {
                     </a>
                   </Button>
                   <Button asChild variant="outline" size="sm">
-                    <a href={`/api/view-certificate/${cert.submissionId}`} target="_blank" rel="noopener noreferrer">
+                    <a href={`/api/certificate/view-certificate/${cert.submissionId}`} target="_blank" rel="noopener noreferrer">
                       <Eye className="w-4 h-4 mr-2" />
                       View
                     </a>
                   </Button>
                   <Button asChild variant="outline" size="sm">
                     <a
-                      href={`/api/get-certificate-details/${cert.submissionId}`}
+                      href={`/api/certificate/get-certificate-details/${cert.submissionId}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >

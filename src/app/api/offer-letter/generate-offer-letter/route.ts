@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
-import { generateOfferLetterPDF } from "@/lib/pdf-generator"
+import { generateOfferLetterPDF } from "@/lib/offer-letter-generator"
 import { uploadToCloudinary } from "@/lib/cloudinary-storage"
 
 const prisma = new PrismaClient()
@@ -117,8 +117,8 @@ export async function POST(request: NextRequest) {
 
     if (existingRecord) {
       const baseUrl = request.nextUrl.origin
-      const downloadUrl = `${baseUrl}/api/download-pdf/${id}`
-      const viewUrl = `${baseUrl}/api/view-pdf/${id}`
+      const downloadUrl = `${baseUrl}/api/offer-letter/download-offer-letter/${id}`
+      const viewUrl = `${baseUrl}/api/offer-letter/view-offer-letter/${id}`
 
       return NextResponse.json({
         success: true,
@@ -205,8 +205,8 @@ export async function POST(request: NextRequest) {
 
     // Generate URLs
     const baseUrl = request.nextUrl.origin
-    const downloadUrl = `${baseUrl}/api/download-pdf/${id}`
-    const viewUrl = `${baseUrl}/api/view-pdf/${id}`
+    const downloadUrl = `${baseUrl}/api/offer-letter/download-offer-letter/${id}`
+    const viewUrl = `${baseUrl}/api/offer-letter/view-offer-letter/${id}`
 
     return NextResponse.json({
       success: true,
