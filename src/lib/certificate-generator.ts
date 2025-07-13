@@ -10,6 +10,17 @@ interface CertificateData {
   email: string
 }
 
+function formatDate(dateStr: string): string {
+  const [day, month, year] = dateStr.split("/").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+
 // Function to load image from public folder
 async function loadImageFromPublic(imagePath: string): Promise<string> {
   try {
@@ -174,9 +185,9 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
       { text: ' with wonderful remarks at ', style: 'normal' },
       { text: 'JAMUNA FOUNDATION', style: 'bold' },
       { text: ' from ', style: 'normal' },
-      { text: data.startDate, style: 'bold' },
+      { text: formatDate(data.startDate), style: 'bold' },
       { text: ' to ', style: 'normal' },
-      { text: data.endDate, style: 'bold' },
+      { text: formatDate(data.endDate), style: 'bold' },
       { text: '. We were truly amazed by his/her showcased skills and invaluable contributions to the tasks and projects throughout the internship.', style: 'normal' },
     ];
 
