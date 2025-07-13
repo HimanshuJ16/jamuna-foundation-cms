@@ -29,7 +29,7 @@ export async function uploadToCloudinary(fileBuffer: Buffer, fileName: string): 
     // Upload to Cloudinary with proper settings for PDF
     const result = await cloudinary.uploader.upload(base64Data, {
       resource_type: "raw", // Use 'raw' for PDF files
-      folder: "internship-offer-letters",
+      folder: "internship-offer-letters", // Default folder for offer letters
       public_id: publicId,
       use_filename: false,
       unique_filename: false,
@@ -52,6 +52,58 @@ export async function uploadToCloudinary(fileBuffer: Buffer, fileName: string): 
   } catch (error) {
     console.error("❌ Error uploading to Cloudinary:", error)
     throw new Error(`Failed to upload file to Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`)
+  }
+}
+
+// New function specifically for certificates with separate folder
+export async function uploadCertificateToCloudinary(fileBuffer: Buffer, fileName: string): Promise<string> {
+  try {
+    console.log(`📜 Uploading certificate to Cloudinary: ${fileName}`)
+    console.log(`📊 File size: ${fileBuffer.length} bytes`)
+
+    // Validate buffer
+    if (!fileBuffer || fileBuffer.length === 0) {
+      throw new Error("Invalid or empty file buffer")
+    }
+
+    // Convert buffer to base64 data URI with proper PDF mime type
+    const base64Data = `data:application/pdf;base64,${fileBuffer.toString("base64")}`
+
+    // Clean filename for public_id (remove special characters but keep structure)
+    const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_")
+    const publicId = cleanFileName.replace(/\.pdf$/i, "") // Remove .pdf extension for public_id
+
+    console.log(`🏷️ Certificate Public ID: ${publicId}`)
+
+    // Upload to Cloudinary with separate folder for certificates
+    const result = await cloudinary.uploader.upload(base64Data, {
+      resource_type: "raw", // Use 'raw' for PDF files
+      folder: "internship-certificates", // Separate folder for certificates
+      public_id: publicId,
+      use_filename: false,
+      unique_filename: false,
+      overwrite: true,
+      invalidate: true,
+    })
+
+    console.log(`✅ Certificate uploaded successfully to Cloudinary`)
+    console.log(`📋 Certificate upload result:`, {
+      public_id: result.public_id,
+      version: result.version,
+      format: result.format,
+      resource_type: result.resource_type,
+      bytes: result.bytes,
+      secure_url: result.secure_url,
+      folder: "internship-certificates",
+    })
+
+    // Return the direct secure URL
+    return result.secure_url
+  } catch (error) {
+    console.error("❌ Error uploading certificate to Cloudinary:", error)
+    throw new Error(
+      `Failed to upload certificate to Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`,
+    )
   }
 }
 

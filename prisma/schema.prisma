@@ -25,3 +25,34 @@ model OfferLetter {
 
   @@map("offer_letters")
 }
+
+model Certificate {
+  id                 String   @id @default(cuid())
+  submissionId       String   @unique
+  firstName          String
+  lastName           String
+  email              String?
+  domain             String
+  startDate          DateTime
+  endDate            DateTime
+  tasksPerformed     Int      @default(0)
+  linkedinTask1      String?
+  linkedinTask2      String?
+  linkedinTask3      String?
+  linkedinTask4      String?
+  linkedinTask5      String?
+  githubTask1        String?
+  githubTask2        String?
+  githubTask3        String?
+  githubTask4        String?
+  githubTask5        String?
+  hostedWebsite      String?
+  experienceLink     String?
+  donation           String?
+  cloudinaryUrl      String
+  submissionDateTime DateTime
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("certificates")
+}
