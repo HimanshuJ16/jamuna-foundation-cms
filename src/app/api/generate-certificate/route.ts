@@ -112,7 +112,6 @@ export async function POST(request: NextRequest) {
       startDate: formattedStartDate,
       endDate: formattedEndDate,
       submissionId: submission_id,
-      email: email || "",
     })
 
     console.log(`✅ Certificate generated, size: ${pdfBuffer.length} bytes`)

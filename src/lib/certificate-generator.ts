@@ -6,7 +6,6 @@ interface CertificateData {
   startDate: string
   endDate: string
   submissionId: string
-  email: string
 }
 
 function formatDate(dateStr: string): string {
