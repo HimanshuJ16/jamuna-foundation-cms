@@ -3,9 +3,9 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: any) {
   try {
-    const submissionId = params.id
+    const { id: submissionId } = await params
 
     // Find the certificate record with all details
     const certificate = await prisma.certificate
