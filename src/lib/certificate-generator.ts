@@ -37,6 +37,34 @@ async function loadImageFromPublic(imagePath: string): Promise<string> {
   }
 }
 
+// Function to load the exact template image
+async function loadTemplateImage(): Promise<string> {
+  try {
+    // First try to load from public folder
+    const localTemplate = await loadImageFromPublic("/images/certificate-template.jpg")
+    if (localTemplate) {
+      return localTemplate
+    }
+
+    // Fallback to the provided URL
+    const templateUrl =
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/WhatsApp%20Image%202025-07-13%20at%2018.03.33_b9779c0c.jpg-DJG1czfr5UFIcrv5zFIaZ0yARPtOj3.jpeg"
+    const response = await fetch(templateUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch template: ${response.status}`)
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const base64 = buffer.toString("base64")
+
+    return `data:image/jpeg;base64,${base64}`
+  } catch (error) {
+    console.error("Error loading template image:", error)
+    throw new Error("Could not load certificate template")
+  }
+}
+
 // Function to generate QR code data URL
 function generateQRCodeDataURL(text: string): string {
   // Simple QR code placeholder - you can integrate with a QR code library
@@ -60,177 +88,211 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
     const centerX = pageWidth / 2
     const margin = 20
 
+    // Define margins and line height for the new text block
+    const leftMargin = 50 // Adjust as needed
+    const rightMargin = 50 // Adjust as needed
+    const lineHeight = 7 // Adjust as needed for spacing between lines
+
+    // Load the exact template image
+    console.log("🖼️ Loading certificate template image...")
+    const templateBase64 = await loadTemplateImage()
+
+    // Add the template image as background (full page)
+    doc.addImage(templateBase64, "JPEG", 0, 0, pageWidth, pageHeight)
+
+    console.log("✅ Template image loaded and applied")
+
     // Load images
     console.log("🖼️ Loading certificate images...")
-    const logoBase64 = await loadImageFromPublic("/images/codsoft-logo.png")
-    const signatureBase64 = await loadImageFromPublic("/images/signature.png")
+    const logoBase64 = await loadImageFromPublic("/images/logo-text.png")
+    const signatureBase64 = await loadImageFromPublic("/images/signature.jpg")
+    const watermarkBase64 = await loadImageFromPublic("/images/watermark.jpg")
 
     // Load additional certificate elements (you can add these to your public/images folder)
-    const msmeLogoBase64 = await loadImageFromPublic("/images/msme-logo.png")
-    const govIndiaBase64 = await loadImageFromPublic("/images/gov-india-logo.png")
-    const isoBase64 = await loadImageFromPublic("/images/iso-logo.png")
-
-    // Background design elements
-    // Top left triangle (blue)
-    doc.setFillColor(63, 81, 181) // Blue color
-    doc.triangle(0, 0, 60, 0, 0, 40, "F")
-
-    // Bottom right triangle (blue)
-    doc.triangle(pageWidth, pageHeight, pageWidth - 60, pageHeight, pageWidth, pageHeight - 40, "F")
-
-    // Top right triangle (light blue)
-    doc.setFillColor(144, 202, 249) // Light blue
-    doc.triangle(pageWidth, 0, pageWidth - 40, 0, pageWidth, 30, "F")
-
-    // Bottom left triangle (light blue)
-    doc.triangle(0, pageHeight, 40, pageHeight, 0, pageHeight - 30, "F")
-
-    // Add main border
-    doc.setDrawColor(0, 0, 0)
-    doc.setLineWidth(2)
-    doc.rect(10, 10, pageWidth - 20, pageHeight - 20)
+    // const msmeLogoBase664 = await loadImageFromPublic("/images/msme-logo.png")
+    // const govIndiaBase64 = await loadImageFromPublic("/images/gov-india-logo.png")
+    // const isoBase64 = await loadImageFromPublic("/images/iso-logo.png")
 
     // Add CodSoft logo (top right)
     if (logoBase64) {
       try {
-        doc.addImage(logoBase64, "PNG", pageWidth - 80, 20, 60, 20)
+        doc.addImage(logoBase64, "PNG", 30, 15, 60, 10)
         console.log("✅ Logo added successfully")
       } catch (logoError) {
         console.warn("⚠️ Could not add logo:", logoError)
       }
     }
 
+    if (watermarkBase64) {
+      try {
+        doc.addImage(watermarkBase64, "PNG", 18, 15, 10, 10)
+        console.log("✅ watermark added successfully")
+      } catch (watermarkError) {
+        console.warn("⚠️ Could not add watermark:", watermarkError)
+      }
+    }
+
     // Add C.ID in top left
     doc.setFontSize(10)
-    doc.setFont("helvetica", "normal")
-    doc.text(`C.ID: ${data.submissionId}`, 20, 25)
+    doc.setFont("Poppins", "bold")
+    doc.text(`C.ID: ${data.submissionId}`, centerX + 60, 20, { align: "left" })
 
     // Main title - CERTIFICATE
-    doc.setFontSize(36)
-    doc.setFont("Belleza", "normal")
-    doc.text("CERTIFICATE", centerX, 60, { align: "center" })
+    doc.setFontSize(56)
+    doc.setFont("Bellefair", "normal")
+    doc.text("CERTIFICATE", centerX, 53, { align: "center" })
 
     // Subtitle - OF COMPLETION
-    doc.setFontSize(14)
-    doc.setFont("helvetica", "normal")
-    doc.setTextColor(128, 128, 128) // Gray color
-    doc.text("OF COMPLETION", centerX, 75, { align: "center" })
+    doc.setFontSize(24)
+    doc.setFont("Poppins", "normal")
+    doc.text("OF COMPLETION", centerX, 68, { align: "center" })
 
     // PROUDLY PRESENTED TO
     doc.setFontSize(12)
+    doc.setFont("Poppins", "normal")
     doc.setTextColor(0, 0, 0) // Black
-    doc.text("PROUDLY PRESENTED TO", centerX, 90, { align: "center" })
+    doc.text("THIS IS TO CERTIFY THAT", centerX, 83, { align: "center" })
 
     // Candidate name with underline
-    doc.setFontSize(24)
-    doc.setFont("helvetica", "bold")
-    doc.text(data.candidateName, centerX, 110, { align: "center" })
+    doc.setFontSize(45)
+    doc.setFont("Bellefair", "normal")
+    doc.text(data.candidateName, centerX, 103, { align: "center" })
 
     // Underline for name
     const nameWidth = doc.getTextWidth(data.candidateName)
-    doc.setLineWidth(1)
-    doc.line(centerX - nameWidth / 2, 115, centerX + nameWidth / 2, 115)
+    doc.setLineWidth(0.3)
+    doc.line(centerX - nameWidth / 2, 106, centerX + nameWidth / 2, 106)
 
-    // Main certificate text
-    doc.setFontSize(12)
-    doc.setFont("helvetica", "normal")
+    // Main certificate text - Converted to new format with centering
+    doc.setFontSize(13) // Set font size for this block
 
-    const mainText1 = `has successfully completed 4 weeks of a virtual internship program in`
-    doc.text(mainText1, centerX, 130, { align: "center" })
+    const paraParts = [
+      { text: 'has successfully completed ', style: 'normal' },
+      { text: '4 weeks', style: 'bold' },
+      { text: ' of a virtual internship program in ', style: 'normal' },
+      { text: data.domain, style: 'bold' },
+      { text: ' with wonderful remarks at ', style: 'normal' },
+      { text: 'JAMUNA FOUNDATION', style: 'bold' },
+      { text: ' from ', style: 'normal' },
+      { text: data.startDate, style: 'bold' },
+      { text: ' to ', style: 'normal' },
+      { text: data.endDate, style: 'bold' },
+      { text: '. We were truly amazed by his/her showcased skills and invaluable contributions to the tasks and projects throughout the internship.', style: 'normal' },
+    ];
 
-    // Domain in bold
-    doc.setFont("helvetica", "bold")
-    doc.text(data.domain, centerX, 145, { align: "center" })
+    let y = 118; // Starting Y position for this text block
+    const maxWidth = pageWidth - leftMargin - rightMargin; // Max width for a line of text
 
-    // Date range
-    doc.setFont("helvetica", "normal")
-    const dateText = `with wonderful remarks at CODSOFT from ${data.startDate} to ${data.endDate}`
-    doc.text(dateText, centerX, 160, { align: "center" })
+    let currentLine: { text: string; style: string; width: number }[] = [];
+    let currentLineTextWidth = 0;
 
-    // Appreciation text
-    const appreciationText = "We were truly amazed by his/her showcased skills and invaluable contributions to"
-    doc.text(appreciationText, centerX, 175, { align: "center" })
+    for (const part of paraParts) {
+      const words = part.text.split(' ');
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i] + (i < words.length - 1 ? ' ' : ''); // Re-add space
+        doc.setFont("Poppins", part.style); // Set font to measure word width accurately
+        const wordWidth = doc.getTextWidth(word);
 
-    const appreciationText2 = "the tasks and projects throughout the internship."
-    doc.text(appreciationText2, centerX, 185, { align: "center" })
+        if (currentLineTextWidth + wordWidth > maxWidth && currentLine.length > 0) {
+          // Line is full, draw it
+          let startX = leftMargin + (maxWidth - currentLineTextWidth) / 2;
+          for (const linePart of currentLine) {
+            doc.setFont("Poppins", linePart.style);
+            doc.text(linePart.text, startX, y);
+            startX += linePart.width;
+          }
+          y += lineHeight; // Move to next line
+          currentLine = []; // Reset for new line
+          currentLineTextWidth = 0;
+        }
+
+        currentLine.push({ text: word, style: part.style, width: wordWidth });
+        currentLineTextWidth += wordWidth;
+      }
+    }
+
+    // Draw any remaining text in the last line
+    if (currentLine.length > 0) {
+      let startX = leftMargin + (maxWidth - currentLineTextWidth) / 2;
+      for (const linePart of currentLine) {
+        doc.setFont("Poppins", linePart.style);
+        doc.text(linePart.text, startX, y);
+        startX += linePart.width;
+      }
+      y += lineHeight;
+    }
 
     // Bottom section with logos and signature
     const bottomY = pageHeight - 60
 
-    // QR Code (left side)
-    try {
-      const qrCodeUrl = await fetch(generateQRCodeDataURL(`Certificate ID: ${data.submissionId}`))
-      if (qrCodeUrl.ok) {
-        const qrBlob = await qrCodeUrl.arrayBuffer()
-        const qrBase64 = `data:image/png;base64,${Buffer.from(qrBlob).toString("base64")}`
-        doc.addImage(qrBase64, "PNG", 30, bottomY - 20, 25, 25)
-      }
-    } catch (qrError) {
-      console.warn("⚠️ Could not add QR code:", qrError)
-      // Add placeholder QR code box
-      doc.setDrawColor(0, 0, 0)
-      doc.rect(30, bottomY - 20, 25, 25)
-      doc.setFontSize(8)
-      doc.text("QR", 42, bottomY - 7, { align: "center" })
-    }
-
     // Founder signature
+    // if (signatureBase64) {
+    //   try {
+    //     doc.addImage(signatureBase64, "PNG", 80, bottomY - 15, 40, 15)
+    //     doc.setFontSize(10)
+    //     doc.text("Founder", 100, bottomY + 5, { align: "center" })
+    //     console.log("✅ Signature added successfully")
+    //   } catch (signatureError) {
+    //     console.warn("⚠️ Could not add signature:", signatureError)
+    //   }
+    // }
+
+    // Add signature (if available)
     if (signatureBase64) {
       try {
-        doc.addImage(signatureBase64, "PNG", 80, bottomY - 15, 40, 15)
-        doc.setFontSize(10)
-        doc.text("Founder", 100, bottomY + 5, { align: "center" })
+        doc.addImage(signatureBase64, "PNG", leftMargin, 150, 40, 16) // Signature above "Founder"
         console.log("✅ Signature added successfully")
       } catch (signatureError) {
         console.warn("⚠️ Could not add signature:", signatureError)
       }
     }
 
-    // Award medal icon (center)
-    doc.setFillColor(255, 193, 7) // Gold color
-    doc.circle(centerX, bottomY - 5, 15, "F")
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(16)
-    doc.text("🏆", centerX, bottomY - 2, { align: "center" })
+    // Footer section
+    doc.setFontSize(11)
+    doc.setFont("Poppins", "bold")
+    doc.text("President",leftMargin + 11, 172)
+    doc.text("(Jamuna Foundation)", leftMargin, 177)
 
-    // ISO certification badge
-    if (isoBase64) {
-      try {
-        doc.addImage(isoBase64, "PNG", centerX + 40, bottomY - 15, 25, 25)
-      } catch (isoError) {
-        console.warn("⚠️ Could not add ISO logo:", isoError)
-        // Placeholder
-        doc.setDrawColor(0, 0, 0)
-        doc.circle(centerX + 52, bottomY - 2, 12)
-        doc.setTextColor(0, 0, 0)
-        doc.setFontSize(8)
-        doc.text("ISO", centerX + 52, bottomY - 2, { align: "center" })
-      }
-    }
 
-    // Government of India emblem
-    if (govIndiaBase64) {
-      try {
-        doc.addImage(govIndiaBase64, "PNG", centerX + 80, bottomY - 15, 20, 25)
-      } catch (govError) {
-        console.warn("⚠️ Could not add Gov India logo:", govError)
-      }
-    }
+    // QR Code (left side)
+    // try {
+    //   const qrCodeUrl = await fetch(generateQRCodeDataURL(`Certificate ID: ${data.submissionId}`))
+    //   if (qrCodeUrl.ok) {
+    //     const qrBlob = await qrCodeUrl.arrayBuffer()
+    //     const qrBase64 = `data:image/png;base64,${Buffer.from(qrBlob).toString("base64")}`
+    //     doc.addImage(qrBase64, "PNG", 30, bottomY - 20, 25, 25)
+    //   }
+    // } catch (qrError) {
+    //   console.warn("⚠️ Could not add QR code:", qrError)
+    //   // Add placeholder QR code box
+    //   doc.setDrawColor(0, 0, 0)
+    //   doc.rect(30, bottomY - 20, 25, 25)
+    //   doc.setFontSize(8)
+    //   doc.text("QR", 42, bottomY - 7, { align: "center" })
+    // }
 
-    // MSME logo
-    if (msmeLogoBase64) {
-      try {
-        doc.addImage(msmeLogoBase64, "PNG", centerX + 110, bottomY - 15, 30, 25)
-      } catch (msmeError) {
-        console.warn("⚠️ Could not add MSME logo:", msmeError)
+    // QR Code (right side)
+    try {
+      const qrCodeUrl = await fetch(generateQRCodeDataURL(`Certificate ID: ${data.submissionId}`))
+      if (qrCodeUrl.ok) {
+        const qrBlob = await qrCodeUrl.arrayBuffer()
+        const qrBase64 = `data:image/png;base64,${Buffer.from(qrBlob).toString("base64")}`
+        doc.addImage(qrBase64, "PNG", pageWidth - 76, bottomY + 3, 25, 25)
       }
+    } catch (qrError) {
+      console.warn("⚠️ Could not add QR code:", qrError)
+      // Add placeholder QR code box
+      doc.setDrawColor(0, 0, 0)
+      doc.rect(pageWidth - 50, bottomY - 20, 25, 25)
+      doc.setFontSize(8)
+      doc.text("QR", pageWidth - 32, bottomY - 7, { align: "center" })
     }
 
     // Footer text
     doc.setTextColor(0, 0, 0)
     doc.setFontSize(10)
-    doc.text("contact@codsoft.in", 30, pageHeight - 15)
-    doc.text("www.codsoft.in", centerX, pageHeight - 15, { align: "center" })
+    doc.text("contact@jamunafoundation.com", 30, pageHeight - 15)
+    doc.text("www.jamunafoundation.com", centerX, pageHeight - 15, { align: "center" })
 
     const currentDate = new Date().toLocaleDateString("en-GB")
     doc.text(`Date: ${currentDate}`, pageWidth - 30, pageHeight - 15, { align: "right" })
