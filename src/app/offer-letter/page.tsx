@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { Download, Eye, FileText, Sparkles, CheckCircle, Clock } from "lucide-react"
 import { PDFPreview } from "@/components/offer-letter-preview"
 import { Navbar } from "@/components/Navbar"
+import { Textarea } from "@/components/ui/textarea"
 
 export default function Component() {
   const [formData, setFormData] = useState({
@@ -291,9 +292,9 @@ export default function Component() {
                   </code>
                 </div>
 
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <h3 className="font-semibold mb-2 text-green-900">Preview Endpoint</h3>
-                  <code className="bg-green-100 px-3 py-2 rounded text-sm text-green-800 block">
+                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <h3 className="font-semibold mb-2 text-orange-900">Preview Endpoint</h3>
+                  <code className="bg-orange-100 px-3 py-2 rounded text-sm text-orange-800 block">
                     POST /api/offer-letter/preview-offer-letter
                   </code>
                 </div>
@@ -311,6 +312,55 @@ export default function Component() {
                   <p>• Logo size: 120x60px (2:1 ratio)</p>
                   <p>• Signature size: 150x50px (3:1 ratio)</p>
                 </div>
+              </div>
+
+              <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                  <h3 className="font-semibold mb-2 text-indigo-900">Request Body (Wix Format)</h3>
+                  <code className="bg-indigo-100 px-3 py-2 rounded text-sm text-indigo-800 block">
+                    <Textarea
+                      readOnly
+                      value={`{
+  "data": {
+    "id": "8e0621c6-ca7d-4e61-a2c8-b714ce05fd68",
+    "first_name": "Himanshu",
+    "last_name": "Jangir",
+    "domain": "Web Development",
+    "date_time": "2025-07-14T12:41:19.357Z",
+    "email": "himanshujangir16@gmail.com",
+    "phone_number": "+91 99903 39096",
+    "learn_about_us": "Social Media ( Instagram, LinkedIn, etc.)",
+    "gender": "Male",
+    "joined_linkedin": "Yes",
+    "college": "DSEU",
+    "academic_qualification": "BTECH",
+    "current_semester": "3",
+    "resume": "https://073401d7-62e3-44e3-994e-b09e7e28be79.usrfiles.com/ugd/175f89_b518aa765529415a8e036750b780c555.pdf",
+    "signature": "Signed"
+  }
+}`}
+                      className="font-mono text-sm"
+                      rows={12}
+                    />
+                  </code>
+              </div>
+
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h3 className="font-semibold mb-2 text-green-900">Response</h3>
+                  <code className="bg-green-100 px-3 py-2 rounded text-sm text-green-800 block">
+                    <Textarea
+                      readOnly
+                      value={`{
+  "success": true,
+  "submissionId": "submission_123",
+  "candidateName": "John Doe",
+  "domain": "Web Development", 
+  "offerLetterUrl": "http://localhost:3000/api/offer-letter/download-offer-letter/submission_123",
+  "viewUrl": "http://localhost:3000/api/offer-letter/view-offer-letter/submission_123"
+}`}
+                      className="font-mono text-sm"
+                      rows={12}
+                    />
+                  </code>
               </div>
             </div>
           </CardContent>

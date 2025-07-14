@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { Download, Eye, Award, CheckCircle, Clock, Star } from "lucide-react"
 import { CertificatePreview } from "@/components/certificate-preview"
 import { Navbar } from "@/components/Navbar"
+import { Textarea } from "@/components/ui/textarea"
 
 export default function CertificatePage() {
   const [formData, setFormData] = useState({
@@ -368,6 +369,62 @@ export default function CertificatePage() {
                     <code className="bg-amber-100 px-2 py-1 rounded">public/images/signature.png</code>
                   </p>
                 </div>
+              </div>
+
+              <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                  <h3 className="font-semibold mb-2 text-indigo-900">Request Body (Wix Format)</h3>
+                  <code className="bg-indigo-100 px-3 py-2 rounded text-sm text-indigo-800 block">
+                    <Textarea
+                      readOnly
+                      value={`{
+  "data": {
+    "first_name": "Himanshu",
+    "last_name": "Jangir",
+    "submission_id": "38afcad3-f5d0-477d-b4e2-6a351912509d",
+    "email": "himanshujangir16@gmail.com",
+    "domain": "Artificial Intelligence",
+    "start_date": "2025-07-09",
+    "end_date": "2025-07-31",
+    "tasks_performed": "3",
+    "linkedin_task1": "https://eqw.com",
+    "linkedin_task2": "https://eqw.com",
+    "linkedin_task3": "https://eqw.com",
+    "linkedin_task4": "https://eqw.com",
+    "linkedin_task5": "https://eqw.com",
+    "github_task1": "https://eqw.com",
+    "github_task2": "https://eqw.com",
+    "github_task3": "https://eqw.com",
+    "github_task4": "https://eqw.com",
+    "github_task5": "https://eqw.com",
+    "hosted_website": "https://eqw.com",
+    "experience_link": "https://eqw.com",
+    "donation": "199 INR",
+    "date_time": "2025-07-13T08:13:26.720Z"
+  }
+}`}
+                      className="font-mono text-sm"
+                      rows={12}
+                    />
+                  </code>
+              </div>
+
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h3 className="font-semibold mb-2 text-green-900">Response</h3>
+                  <code className="bg-green-100 px-3 py-2 rounded text-sm text-green-800 block">
+                    <Textarea
+                      readOnly
+                      value={`{
+  "success": true,
+  "submissionId": "38afcad3-f5d0-477d-b4e2-6a351912509d",
+  "candidateName": "Himanshu Jangir",
+  "domain": "Artificial Intelligence",
+  "certificateUrl": "http://localhost:3000/api/certificate/download-certificate/38afcad3-f5d0-477d-b4e2-6a351912509d",
+  "viewUrl": "http://localhost:3000/api/certificate/view-certificate/38afcad3-f5d0-477d-b4e2-6a351912509d"
+}`}
+                      className="font-mono text-sm"
+                      rows={12}
+                    />
+                  </code>
               </div>
             </div>
           </CardContent>
