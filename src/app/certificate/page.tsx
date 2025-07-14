@@ -12,6 +12,7 @@ import { Download, Eye, Award, CheckCircle, Clock, Star } from "lucide-react"
 import { CertificatePreview } from "@/components/certificate-preview"
 import { Navbar } from "@/components/Navbar"
 import { Textarea } from "@/components/ui/textarea"
+import { QRCodeInfo } from "@/components/qr-code-info"
 
 export default function CertificatePage() {
   const [formData, setFormData] = useState({
@@ -22,7 +23,7 @@ export default function CertificatePage() {
     domain: "",
     start_date: "",
     end_date: "",
-    tasks_performed: "3",
+    tasks_performed: "",
     linkedin_task1: "",
     linkedin_task2: "",
     linkedin_task3: "",
@@ -284,6 +285,16 @@ export default function CertificatePage() {
                           </div>
                         </div>
 
+                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <p className="font-semibold text-blue-800 mb-1">🔒 QR Code Verification</p>
+                          <p className="text-blue-700 text-xs">
+                            Certificate includes QR code linking to: <br />
+                            <code className="bg-blue-100 px-2 py-1 rounded text-xs">
+                              /verify-certificate/{response.submissionId}
+                            </code>
+                          </p>
+                        </div>
+
                         <div className="pt-4 space-y-3">
                           <div className="flex gap-3">
                             <Button
@@ -328,12 +339,17 @@ export default function CertificatePage() {
           </div>
         </div>
 
+        {/* QR Code Information */}
+        <div className="mt-12">
+          <QRCodeInfo submissionId={response?.submissionId} />
+        </div>
+
         {/* API Documentation */}
         <Card className="mt-12 shadow-xl border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-t-lg">
             <CardTitle className="text-2xl text-gray-900">Certificate API Documentation</CardTitle>
             <CardDescription className="text-gray-600">
-              Complete API reference for certificate generation
+              Complete API reference for certificate generation with QR verification
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
@@ -347,9 +363,9 @@ export default function CertificatePage() {
                 </div>
 
                 <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
-                  <h3 className="font-semibold mb-2 text-pink-900">Preview Endpoint</h3>
+                  <h3 className="font-semibold mb-2 text-pink-900">Verification Endpoint</h3>
                   <code className="bg-pink-100 px-3 py-2 rounded text-sm text-pink-800 block">
-                    POST /api/certificate/preview-certificate
+                    GET /verify-certificate/[id]
                   </code>
                 </div>
               </div>

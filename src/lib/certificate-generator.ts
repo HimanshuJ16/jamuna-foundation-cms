@@ -1,4 +1,5 @@
 import jsPDF from "jspdf"
+import { Buffer } from "buffer"
 
 interface CertificateData {
   candidateName: string
@@ -9,35 +10,31 @@ interface CertificateData {
 }
 
 function formatDate(dateStr: string): string {
-  const [day, month, year] = dateStr.split("/").map(Number);
-  const date = new Date(year, month - 1, day);
+  const [day, month, year] = dateStr.split("/").map(Number)
+  const date = new Date(year, month - 1, day)
   return date.toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "long",
-    year: "numeric"
-  });
+    year: "numeric",
+  })
 }
 
 // Function to load image from public folder
 async function loadImageFromPublic(imagePath: string): Promise<string> {
   try {
     const publicUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}${imagePath}`
-
     const response = await fetch(publicUrl)
     if (!response.ok) {
       console.warn(`Could not load image from ${publicUrl}`)
       return ""
     }
-
     const arrayBuffer = await response.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const base64 = buffer.toString("base64")
-
     let mimeType = "image/png"
     if (imagePath.includes(".jpg") || imagePath.includes(".jpeg")) {
       mimeType = "image/jpeg"
     }
-
     return `data:${mimeType};base64,${base64}`
   } catch (error) {
     console.warn(`Warning: Could not load image ${imagePath}:`, error)
@@ -53,7 +50,6 @@ async function loadTemplateImage(): Promise<string> {
     if (localTemplate) {
       return localTemplate
     }
-
     // Fallback to the provided URL
     const templateUrl =
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/WhatsApp%20Image%202025-07-13%20at%2018.03.33_b9779c0c.jpg-DJG1czfr5UFIcrv5zFIaZ0yARPtOj3.jpeg"
@@ -61,11 +57,9 @@ async function loadTemplateImage(): Promise<string> {
     if (!response.ok) {
       throw new Error(`Failed to fetch template: ${response.status}`)
     }
-
     const arrayBuffer = await response.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const base64 = buffer.toString("base64")
-
     return `data:image/jpeg;base64,${base64}`
   } catch (error) {
     console.error("Error loading template image:", error)
@@ -73,11 +67,34 @@ async function loadTemplateImage(): Promise<string> {
   }
 }
 
-// Function to generate QR code data URL
-function generateQRCodeDataURL(text: string): string {
-  // Simple QR code placeholder - you can integrate with a QR code library
-  // For now, we'll use a placeholder
-  return `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(text)}`
+// Function to generate QR code for certificate verification
+async function generateVerificationQRCode(submissionId: string): Promise<string> {
+  try {
+    // Create verification URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+    const verificationUrl = `${baseUrl}/verify-certificate/${submissionId}`
+
+    console.log("🔲 Generating QR code for verification URL:", verificationUrl)
+
+    // Generate QR code using QR Server API
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&format=png&data=${encodeURIComponent(verificationUrl)}`
+
+    const response = await fetch(qrApiUrl)
+    if (!response.ok) {
+      throw new Error(`QR API failed: ${response.status}`)
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const base64 = buffer.toString("base64")
+
+    console.log("✅ QR code generated successfully")
+    return `data:image/png;base64,${base64}`
+  } catch (error) {
+    console.error("❌ Error generating QR code:", error)
+    // Return a fallback QR code or empty string
+    return ""
+  }
 }
 
 export async function generateCertificatePDF(data: CertificateData): Promise<Buffer> {
@@ -107,7 +124,6 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
 
     // Add the template image as background (full page)
     doc.addImage(templateBase64, "JPEG", 0, 0, pageWidth, pageHeight)
-
     console.log("✅ Template image loaded and applied")
 
     // Load images
@@ -168,61 +184,62 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
 
     // Main certificate text - Converted to new format with centering
     doc.setFontSize(13) // Set font size for this block
-
     const paraParts = [
-      { text: 'has successfully completed ', style: 'normal' },
-      { text: '4 weeks', style: 'bold' },
-      { text: ' of a virtual internship program in ', style: 'normal' },
-      { text: data.domain, style: 'bold' },
-      { text: ' with wonderful remarks at ', style: 'normal' },
-      { text: 'JAMUNA FOUNDATION', style: 'bold' },
-      { text: ' from ', style: 'normal' },
-      { text: formatDate(data.startDate), style: 'bold' },
-      { text: ' to ', style: 'normal' },
-      { text: formatDate(data.endDate), style: 'bold' },
-      { text: '. We were truly amazed by his/her showcased skills and invaluable contributions to the tasks and projects throughout the internship.', style: 'normal' },
-    ];
+      { text: "has successfully completed ", style: "normal" },
+      { text: "4 weeks", style: "bold" },
+      { text: " of a virtual internship program in ", style: "normal" },
+      { text: data.domain, style: "bold" },
+      { text: " with wonderful remarks at ", style: "normal" },
+      { text: "JAMUNA FOUNDATION", style: "bold" },
+      { text: " from ", style: "normal" },
+      { text: formatDate(data.startDate), style: "bold" },
+      { text: " to ", style: "normal" },
+      { text: formatDate(data.endDate), style: "bold" },
+      {
+        text: ". We were truly amazed by his/her showcased skills and invaluable contributions to the tasks and projects throughout the internship.",
+        style: "normal",
+      },
+    ]
 
-    let y = 118; // Starting Y position for this text block
-    const maxWidth = pageWidth - leftMargin - rightMargin; // Max width for a line of text
-
-    let currentLine: { text: string; style: string; width: number }[] = [];
-    let currentLineTextWidth = 0;
+    let y = 118 // Starting Y position for this text block
+    const maxWidth = pageWidth - leftMargin - rightMargin // Max width for a line of text
+    let currentLine: { text: string; style: string; width: number }[] = []
+    let currentLineTextWidth = 0
 
     for (const part of paraParts) {
-      const words = part.text.split(' ');
+      const words = part.text.split(" ")
       for (let i = 0; i < words.length; i++) {
-        const word = words[i] + (i < words.length - 1 ? ' ' : ''); // Re-add space
-        doc.setFont("Poppins", part.style); // Set font to measure word width accurately
-        const wordWidth = doc.getTextWidth(word);
+        const word = words[i] + (i < words.length - 1 ? " " : "") // Re-add space
+        doc.setFont("Poppins", part.style) // Set font to measure word width accurately
+        const wordWidth = doc.getTextWidth(word)
 
         if (currentLineTextWidth + wordWidth > maxWidth && currentLine.length > 0) {
           // Line is full, draw it
-          let startX = leftMargin + (maxWidth - currentLineTextWidth) / 2;
+          let startX = leftMargin + (maxWidth - currentLineTextWidth) / 2
           for (const linePart of currentLine) {
-            doc.setFont("Poppins", linePart.style);
-            doc.text(linePart.text, startX, y);
-            startX += linePart.width;
+            doc.setFont("Poppins", linePart.style)
+            doc.text(linePart.text, startX, y)
+            startX += linePart.width
           }
-          y += lineHeight; // Move to next line
-          currentLine = []; // Reset for new line
-          currentLineTextWidth = 0;
+          y += lineHeight // Move to next line
+          currentLine = [] // Reset for new line
+          currentLineTextWidth = 0
         }
 
-        currentLine.push({ text: word, style: part.style, width: wordWidth });
-        currentLineTextWidth += wordWidth;
+        currentLine.push({ text: word, style: part.style, width: wordWidth })
+        currentLineTextWidth += wordWidth
       }
     }
 
     // Draw any remaining text in the last line
     if (currentLine.length > 0) {
-      let startX = leftMargin + (maxWidth - currentLineTextWidth) / 2;
+      let startX = leftMargin + (maxWidth - currentLineTextWidth) / 2
       for (const linePart of currentLine) {
-        doc.setFont("Poppins", linePart.style);
-        doc.text(linePart.text, startX, y);
-        startX += linePart.width;
+        doc.setFont("Poppins", linePart.style)
+        doc.text(linePart.text, startX, y)
+        startX += linePart.width
       }
-      y += lineHeight;
+      y += lineHeight
     }
 
     // Bottom section with logos and signature
@@ -241,24 +258,33 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
     // Footer section
     doc.setFontSize(11)
     doc.setFont("Poppins", "bold")
-    doc.text("President",leftMargin + 11, 172)
+    doc.text("President", leftMargin + 11, 172)
     doc.text("(Jamuna Foundation)", leftMargin, 177)
 
-    // QR Code (right side)
+    // Generate and add verification QR Code (right side)
+    console.log("🔲 Generating verification QR code...")
     try {
-      const qrCodeUrl = await fetch(generateQRCodeDataURL(`Certificate ID: ${data.submissionId}`))
-      if (qrCodeUrl.ok) {
-        const qrBlob = await qrCodeUrl.arrayBuffer()
-        const qrBase64 = `data:image/png;base64,${Buffer.from(qrBlob).toString("base64")}`
-        doc.addImage(qrBase64, "PNG", pageWidth - 76, bottomY + 3, 25, 25)
+      const qrCodeBase64 = await generateVerificationQRCode(data.submissionId)
+      if (qrCodeBase64) {
+        doc.addImage(qrCodeBase64, "PNG", pageWidth - 76, bottomY + 3, 25, 25)
+        console.log("✅ Verification QR code added successfully")
+
+        // Add "Scan to Verify" text below QR code
+        doc.setFontSize(8)
+        doc.setFont("Poppins", "normal")
+        doc.text("Scan to Verify", pageWidth - 63.5, bottomY + 32, { align: "center" })
+      } else {
+        throw new Error("Failed to generate QR code")
       }
     } catch (qrError) {
-      console.warn("⚠️ Could not add QR code:", qrError)
+      console.warn("⚠️ Could not add verification QR code:", qrError)
       // Add placeholder QR code box
       doc.setDrawColor(0, 0, 0)
-      doc.rect(pageWidth - 50, bottomY - 20, 25, 25)
+      doc.rect(pageWidth - 76, bottomY + 3, 25, 25)
       doc.setFontSize(8)
-      doc.text("QR", pageWidth - 32, bottomY - 7, { align: "center" })
+      doc.setFont("Poppins", "normal")
+      doc.text("QR Code", pageWidth - 63.5, bottomY + 18, { align: "center" })
+      doc.text("Unavailable", pageWidth - 63.5, bottomY + 22, { align: "center" })
     }
 
     // Footer text
@@ -266,7 +292,6 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
     doc.setFontSize(10)
     doc.text("contact@jamunafoundation.com", 30, pageHeight - 15)
     doc.text("www.jamunafoundation.com", centerX, pageHeight - 15, { align: "center" })
-
     const currentDate = new Date().toLocaleDateString("en-GB")
     doc.text(`Date: ${currentDate}`, pageWidth - 30, pageHeight - 15, { align: "right" })
 
