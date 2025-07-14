@@ -63,14 +63,6 @@ export default function HomePage() {
               />
             </div>
           </div>
-
-          {/* Title and Description */}
-          {/* <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Jamuna Foundation</h1> */}
-          {/* <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">Internship Management System</h2> */}
-          {/* <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Streamline your internship program management with our comprehensive platform. Generate offer letters,
-            certificates, and manage all your documentation efficiently.
-          </p> */}
         </div>
 
         {/* Navigation Cards Grid */}
