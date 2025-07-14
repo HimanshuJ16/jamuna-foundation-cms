@@ -7,115 +7,73 @@ const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
-    let id, first_name, last_name, domain, date_time
+    let parsedData: any = {}
 
-    // Check Content-Type to determine how to parse the body
+    // Parse the request body
     const contentType = request.headers.get("content-type") || ""
     console.log("📥 Content-Type:", contentType)
 
-    // Parse the request body
-    let rawBody: any = {}
-
     if (contentType.includes("application/json")) {
       console.log("📝 Parsing as JSON...")
-      rawBody = await request.json()
+      const rawBody = await request.json()
       console.log("🔍 Raw JSON body received:", JSON.stringify(rawBody, null, 2))
 
-      // Check if data is nested inside a 'data' object (Wix format)
-      const dataSource = rawBody.data || rawBody
-
-      console.log("🔍 Data source:", JSON.stringify(dataSource, null, 2))
-      console.log("🔑 Data source keys:", Object.keys(dataSource))
-
-      // Extract fields from the correct data source
-      id = dataSource.id || dataSource.submissionId || dataSource.submission_id || dataSource.ID
-      first_name = dataSource.first_name || dataSource.firstName || dataSource.fname || dataSource.name?.first
-      last_name = dataSource.last_name || dataSource.lastName || dataSource.lname || dataSource.name?.last
-      domain = dataSource.domain || dataSource.internshipDomain || dataSource.preferred_domain || dataSource.field
-      date_time =
-        dataSource.date_time ||
-        dataSource.dateTime ||
-        dataSource.timestamp ||
-        dataSource.submissionTime ||
-        dataSource.createdAt
-    } else if (contentType.includes("application/x-www-form-urlencoded")) {
-      console.log("📝 Parsing as form data...")
-      const formData = await request.formData()
-      console.log("🔍 Form data entries:")
-      for (const [key, value] of formData.entries()) {
-        console.log(`  ${key}: ${value}`)
-      }
-
-      id = formData.get("id")?.toString()
-      first_name = formData.get("first_name")?.toString()
-      last_name = formData.get("last_name")?.toString()
-      domain = formData.get("domain")?.toString()
-      date_time = formData.get("date_time")?.toString()
+      // Extract data from nested structure if available
+      parsedData = rawBody.data || rawBody
     } else {
-      // Try both methods as fallback
-      console.log("📝 Trying to parse as form data first...")
-      try {
-        const formData = await request.formData()
-        id = formData.get("id")?.toString()
-        first_name = formData.get("first_name")?.toString()
-        last_name = formData.get("last_name")?.toString()
-        domain = formData.get("domain")?.toString()
-        date_time = formData.get("date_time")?.toString()
-
-        if (!id && !first_name && !last_name && !domain) {
-          console.log("📝 Form data empty, trying JSON...")
-          rawBody = await request.json()
-          const dataSource = rawBody.data || rawBody
-
-          id = dataSource.id || dataSource.submissionId || dataSource.submission_id
-          first_name = dataSource.first_name || dataSource.firstName || dataSource.fname
-          last_name = dataSource.last_name || dataSource.lastName || dataSource.lname
-          domain = dataSource.domain || dataSource.internshipDomain || dataSource.preferred_domain
-          date_time = dataSource.date_time || dataSource.dateTime || dataSource.timestamp
-        }
-      } catch (formError) {
-        console.log("📝 Form data failed, trying JSON...")
-        rawBody = await request.json()
-        const dataSource = rawBody.data || rawBody
-
-        id = dataSource.id || dataSource.submissionId || dataSource.submission_id
-        first_name = dataSource.first_name || dataSource.firstName || dataSource.fname
-        last_name = dataSource.last_name || dataSource.lastName || dataSource.lname
-        domain = dataSource.domain || dataSource.internshipDomain || dataSource.preferred_domain
-        date_time = dataSource.date_time || dataSource.dateTime || dataSource.timestamp
+      // Try form data if JSON is not available
+      const formData = await request.formData()
+      for (const [key, value] of formData.entries()) {
+        parsedData[key] = value
       }
     }
 
-    console.log("📋 Parsed data:", { id, first_name, last_name, domain, date_time })
+    console.log("📋 Parsed offer letter data:", parsedData)
+
+    // Extract required and additional fields
+    const {
+      id, // required submission id
+      first_name,
+      last_name,
+      domain,
+      date_time,
+      email,
+      phone_number,
+      learn_about_us,
+      gender,
+      joined_linkedin,
+      college,
+      academic_qualification,
+      current_semester,
+      resume,
+      signature,
+    } = parsedData
 
     // Validate required fields
     if (!id || !first_name || !last_name || !domain) {
-      const dataSource = rawBody.data || rawBody
       return NextResponse.json(
         {
           error: "Missing required fields",
           required: ["id", "first_name", "last_name", "domain"],
-          received: { id, first_name, last_name, domain, date_time },
-          availableFields: Object.keys(dataSource),
-          rawData: dataSource,
-          isNestedInData: !!rawBody.data,
+          received: { id, first_name, last_name, domain },
+          availableFields: Object.keys(parsedData),
         },
         { status: 400 },
       )
     }
 
     // Set default date_time if not provided
+    const submissionTimestamp = date_time ? new Date(date_time) : new Date()
     if (!date_time) {
-      date_time = new Date().toISOString()
-      console.log("📅 Using default date_time:", date_time)
+      console.log("📅 date_time not provided; using current timestamp:", submissionTimestamp.toISOString())
     }
 
     // Check if offer letter already exists
-    const existingRecord = await prisma.offerLetter.findUnique({
+    const existingOfferLetter = await prisma.offerLetter.findUnique({
       where: { submissionId: id },
-    })
+    }).catch(() => null)
 
-    if (existingRecord) {
+    if (existingOfferLetter) {
       const baseUrl = request.nextUrl.origin
       const downloadUrl = `${baseUrl}/api/offer-letter/download-offer-letter/${id}`
       const viewUrl = `${baseUrl}/api/offer-letter/view-offer-letter/${id}`
@@ -123,87 +81,102 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         submissionId: id,
-        candidateName: `${existingRecord.firstName} ${existingRecord.lastName}`,
-        domain: existingRecord.domain,
+        candidateName: `${existingOfferLetter.firstName} ${existingOfferLetter.lastName}`,
+        domain: existingOfferLetter.domain,
         offerLetterUrl: downloadUrl,
         viewUrl: viewUrl,
         message: "Offer letter already exists",
       })
     }
 
-    // Calculate internship dates (4 weeks duration as per template)
-    const submissionDate = new Date(date_time)
+    // Calculate internship start and end dates using rules:
+    //  - If day of submission (date_time) is between 1 and 12, set startDate to 15th of the same month.
+    //  - Otherwise, startDate is the 1st of the next month.
+    const submissionDate = submissionTimestamp
     const startDate = new Date(submissionDate)
-
     const day = submissionDate.getDate()
     const month = submissionDate.getMonth()
     const year = submissionDate.getFullYear()
 
     if (day >= 1 && day <= 12) {
-      // Start on 15th of the same month
       startDate.setFullYear(year)
       startDate.setMonth(month)
       startDate.setDate(15)
     } else {
-      // Start on 1st of next month
       startDate.setFullYear(year)
       startDate.setMonth(month + 1)
       startDate.setDate(1)
     }
 
     let endDate: Date
-
     if (startDate.getDate() === 15) {
-      // +30 days
       endDate = new Date(startDate)
       endDate.setDate(endDate.getDate() + 30)
     } else {
-      // End on last day of that month
-      endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0) // Day 0 = last day of current month
+      // Set endDate to the last day of the start month
+      endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0)
     }
 
-    // Generate PDF
-    console.log("📄 Generating PDF...")
+    // Format dates for PDF generation (using en-GB format)
+    const formattedStartDate = startDate.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+    const formattedEndDate = endDate.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+
+    // Generate Offer Letter PDF
+    console.log("📄 Generating offer letter PDF...")
     const pdfBuffer = await generateOfferLetterPDF({
       candidateName: `${first_name} ${last_name}`,
       domain,
-      startDate: startDate.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }),
-      endDate: endDate.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }),
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
       submissionId: id,
     })
-
     console.log(`✅ PDF generated, size: ${pdfBuffer.length} bytes`)
 
     // Upload to Cloudinary
     const fileName = `Internship_Offer_Letter_${first_name}_${last_name}_${id}.pdf`
-    console.log("☁️ Uploading to Cloudinary...")
+    console.log("☁️ Uploading offer letter to Cloudinary...")
     const cloudinaryUrl = await uploadToCloudinary(pdfBuffer, fileName)
-
     console.log(`✅ Upload successful: ${cloudinaryUrl}`)
 
-    // Store in database
-    const offerLetter = await prisma.offerLetter.create({
-      data: {
-        submissionId: id,
-        firstName: first_name,
-        lastName: last_name,
-        domain,
-        startDate,
-        endDate,
-        cloudinaryUrl,
-        submissionDateTime: new Date(date_time),
-      },
-    })
+    // Store offer letter in database
+    try {
+      const offerLetter = await prisma.offerLetter.create({
+        data: {
+          submissionId: id,
+          firstName: first_name,
+          lastName: last_name,
+          domain,
+          startDate,
+          endDate,
+          cloudinaryUrl,
+          submissionDateTime: submissionTimestamp,
+          email: email || "",
+          phoneNumber: phone_number || "",
+          learnAboutUs: learn_about_us || "",
+          gender: gender || "",
+          joinedLinkedin: joined_linkedin || "",
+          college: college || "",
+          academicQualification: academic_qualification || "",
+          currentSemester: current_semester || "",
+          resume: resume || "",
+          signature: signature || "",
+        },
+      })
+      console.log("✅ Offer letter record saved to database")
+    } catch (dbError) {
+      console.warn("⚠️ Could not save to database:", dbError)
+      // Optionally continue processing even if saving to the database fails
+    }
 
-    // Generate URLs
+    // Generate URLs for download and view
     const baseUrl = request.nextUrl.origin
     const downloadUrl = `${baseUrl}/api/offer-letter/download-offer-letter/${id}`
     const viewUrl = `${baseUrl}/api/offer-letter/view-offer-letter/${id}`
@@ -219,12 +192,11 @@ export async function POST(request: NextRequest) {
         pdfSize: pdfBuffer.length,
         fileName,
         cloudinaryUrl,
-        contentType,
-        wasNestedInData: !!rawBody.data,
+        formattedDates: { formattedStartDate, formattedEndDate },
       },
     })
   } catch (error) {
-    console.error("Error generating offer letter:", error)
+    console.error("❌ Error generating offer letter:", error)
     return NextResponse.json(
       {
         error: "Internal server error",

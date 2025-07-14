@@ -11,17 +11,27 @@ datasource db {
 }
 
 model OfferLetter {
-  id                 String   @id @default(cuid())
-  submissionId       String   @unique
-  firstName          String
-  lastName           String
-  domain             String
-  startDate          DateTime
-  endDate            DateTime
-  cloudinaryUrl      String
-  submissionDateTime DateTime
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  submissionId         String   @unique
+  firstName            String
+  lastName             String
+  gender               String?
+  domain               String
+  startDate            DateTime
+  endDate              DateTime
+  email                String?
+  phoneNumber          String?
+  college              String?
+  academicQualification String?
+  currentSemester      String?  
+  learnAboutUs         String?
+  joinedLinkedin       String?
+  resume               String?
+  signature            String?
+  cloudinaryUrl        String
+  submissionDateTime   DateTime
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   @@map("offer_letters")
 }
