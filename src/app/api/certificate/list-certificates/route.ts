@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
 
     // Process certificates to include link counts
     const processedCertificates = certificates.map((cert) => {
-      const linkedinLinks = [cert.linkedinTask1, cert.linkedinTask2, cert.linkedinTask3].filter(Boolean)
-      const githubLinks = [cert.githubTask1, cert.githubTask2, cert.githubTask3].filter(Boolean)
+      const linkedinLinks = [cert.linkedinTask1, cert.linkedinTask2, cert.linkedinTask3, cert.linkedinTask4, cert.linkedinTask5].filter(Boolean)
+      const githubLinks = [cert.githubTask1, cert.githubTask2, cert.githubTask3, cert.githubTask4, cert.githubTask5].filter(Boolean)
 
       return {
         ...cert,
