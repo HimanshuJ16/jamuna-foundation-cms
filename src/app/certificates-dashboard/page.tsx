@@ -7,7 +7,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Award, Download, Eye, ExternalLink, Github, Linkedin, Globe, Heart } from "lucide-react"
+import {
+  Award,
+  Download,
+  Eye,
+  ExternalLink,
+  Github,
+  Linkedin,
+  Globe,
+  Heart,
+  Search,
+  Filter,
+  RefreshCw,
+  TrendingUp,
+} from "lucide-react"
 import { Navbar } from "@/components/Navbar"
 
 interface Certificate {
@@ -74,37 +87,71 @@ export default function CertificatesDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
       <Navbar />
-      <div className="container mx-auto p-6 max-w-7xl">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Award className="w-8 h-8" />
-            Certificates Dashboard
-          </h1>
-          <p className="text-muted-foreground">View and manage all generated certificates</p>
-        </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Filters</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="search">Search</Label>
-                <Input
-                  id="search"
-                  placeholder="Search by name, email, or ID..."
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                />
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-12">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-full">
+                <Award className="w-8 h-8" />
               </div>
+              <div>
+                <h1 className="text-4xl font-bold">Certificates Dashboard</h1>
+                <p className="text-xl text-purple-100 mt-2">Manage and track all generated certificates</p>
+              </div>
+            </div>
+            <div className="hidden md:flex items-center gap-6 text-purple-100">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{pagination.total || 0}</div>
+                <div className="text-sm">Total Certificates</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">{certificates.length}</div>
+                <div className="text-sm">This Page</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto p-6 max-w-7xl -mt-8">
+        {/* Filters Card */}
+        <Card className="mb-8 shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-t-lg">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Filter className="w-5 h-5 text-gray-600" />
+              </div>
+              <CardTitle className="text-xl text-gray-900">Search & Filter</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid gap-6 md:grid-cols-4">
+              <div className="md:col-span-2 space-y-2">
+                <Label htmlFor="search" className="text-sm font-semibold text-gray-700">
+                  Search
+                </Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    id="search"
+                    placeholder="Search by name, email, or ID..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10 h-11 border-2 border-gray-200 focus:border-purple-500 transition-colors"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="domain">Domain</Label>
+                <Label htmlFor="domain" className="text-sm font-semibold text-gray-700">
+                  Domain
+                </Label>
                 <Select value={domain} onValueChange={handleDomainFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 border-2 border-gray-200 focus:border-purple-500">
                     <SelectValue placeholder="All domains" />
                   </SelectTrigger>
                   <SelectContent>
@@ -121,8 +168,14 @@ export default function CertificatesDashboard() {
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="flex items-end">
-                <Button onClick={fetchCertificates} className="w-full">
+                <Button
+                  onClick={fetchCertificates}
+                  className="w-full h-11 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex items-center justify-center gap-2"
+                  disabled={loading}
+                >
+                  <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
                   Refresh
                 </Button>
               </div>
@@ -131,60 +184,110 @@ export default function CertificatesDashboard() {
         </Card>
 
         {/* Certificates List */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {loading ? (
-            <div className="text-center py-8">Loading certificates...</div>
+            <div className="text-center py-16">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <RefreshCw className="w-8 h-8 text-purple-600 animate-spin" />
+              </div>
+              <p className="text-gray-600 text-lg">Loading certificates...</p>
+            </div>
           ) : certificates.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No certificates found</div>
+            <div className="text-center py-16">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500 text-lg">No certificates found</p>
+              <p className="text-gray-400 text-sm mt-2">Try adjusting your search criteria</p>
+            </div>
           ) : (
-            certificates.map((cert) => (
-              <Card key={cert.id}>
+            certificates.map((cert, index) => (
+              <Card
+                key={cert.id}
+                className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
                 <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{cert.candidateName}</h3>
-                      <p className="text-sm text-muted-foreground">{cert.email}</p>
-                      <p className="text-sm text-muted-foreground">ID: {cert.submissionId}</p>
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        {cert.candidateName.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">{cert.candidateName}</h3>
+                        <p className="text-gray-600 mb-1">{cert.email}</p>
+                        <p className="text-sm text-gray-500">ID: {cert.submissionId}</p>
+                      </div>
                     </div>
-                    <Badge variant="secondary">{cert.domain}</Badge>
+                    <Badge
+                      variant="secondary"
+                      className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-purple-200"
+                    >
+                      {cert.domain}
+                    </Badge>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4" />
-                      <span className="text-sm">{cert.tasksPerformed} tasks</span>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <div className="p-2 bg-blue-100 rounded-full">
+                        <TrendingUp className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-blue-900">{cert.tasksPerformed} Tasks</p>
+                        <p className="text-xs text-blue-600">Completed</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Linkedin className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm">{cert.linkedinLinksCount} LinkedIn links</span>
+
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <div className="p-2 bg-blue-100 rounded-full">
+                        <Linkedin className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-blue-900">{cert.linkedinLinksCount} LinkedIn</p>
+                        <p className="text-xs text-blue-600">Links</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Github className="w-4 h-4" />
-                      <span className="text-sm">{cert.githubLinksCount} GitHub links</span>
+
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="p-2 bg-gray-100 rounded-full">
+                        <Github className="w-4 h-4 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{cert.githubLinksCount} GitHub</p>
+                        <p className="text-xs text-gray-600">Repos</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">{cert.hasHostedWebsite ? "Has website" : "No website"}</span>
+
+                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                      <div className="p-2 bg-green-100 rounded-full">
+                        <Globe className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-green-900">Website</p>
+                        <p className="text-xs text-green-600">{cert.hasHostedWebsite ? "Available" : "None"}</p>
+                      </div>
                     </div>
                   </div>
 
                   <div className="flex gap-2 mb-4">
                     {cert.hasExperienceLink && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                         <ExternalLink className="w-3 h-3 mr-1" />
                         Experience
                       </Badge>
                     )}
                     {cert.hasDonation && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
                         <Heart className="w-3 h-3 mr-1" />
                         Donated
                       </Badge>
                     )}
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button asChild size="sm">
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      asChild
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    >
                       <a
                         href={`/api/certificate/download-certificate/${cert.submissionId}`}
                         target="_blank"
@@ -194,13 +297,25 @@ export default function CertificatesDashboard() {
                         Download
                       </a>
                     </Button>
-                    <Button asChild variant="outline" size="sm">
-                      <a href={`/api/certificate/view-certificate/${cert.submissionId}`} target="_blank" rel="noopener noreferrer">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="border-2 hover:bg-purple-50 hover:border-purple-300 bg-transparent"
+                    >
+                      <a
+                        href={`/api/certificate/view-certificate/${cert.submissionId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <Eye className="w-4 h-4 mr-2" />
                         View
                       </a>
                     </Button>
-                    <Button asChild variant="outline" size="sm">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="border-2 hover:bg-blue-50 hover:border-blue-300 bg-transparent"
+                    >
                       <a
                         href={`/api/certificate/get-certificate-details/${cert.submissionId}`}
                         target="_blank"
@@ -212,8 +327,16 @@ export default function CertificatesDashboard() {
                     </Button>
                   </div>
 
-                  <div className="text-xs text-muted-foreground mt-2">
-                    Created: {new Date(cert.createdAt).toLocaleDateString()}
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                    <div className="text-xs text-gray-500">
+                      Created:{" "}
+                      {new Date(cert.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </div>
+                    <div className="text-xs text-gray-400">#{index + 1 + (page - 1) * 10}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -223,17 +346,38 @@ export default function CertificatesDashboard() {
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-6">
-            <Button variant="outline" onClick={() => setPage(page - 1)} disabled={!pagination.hasPrev}>
-              Previous
-            </Button>
-            <span className="flex items-center px-4">
-              Page {pagination.page} of {pagination.totalPages}
-            </span>
-            <Button variant="outline" onClick={() => setPage(page + 1)} disabled={!pagination.hasNext}>
-              Next
-            </Button>
-          </div>
+          <Card className="mt-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing {(page - 1) * 10 + 1} to {Math.min(page * 10, pagination.total)} of {pagination.total} results
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPage(page - 1)}
+                    disabled={!pagination.hasPrev}
+                    className="border-2"
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center px-4 py-2 bg-purple-50 rounded-lg">
+                    <span className="text-sm font-medium text-purple-800">
+                      Page {pagination.page} of {pagination.totalPages}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setPage(page + 1)}
+                    disabled={!pagination.hasNext}
+                    className="border-2"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
