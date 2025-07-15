@@ -7,13 +7,13 @@ const prisma = new PrismaClient()
 
 // ✅ Google Drive task link mapping
 const taskLinksByDomain: Record<string, string> = {
-  "Web Development": "https://drive.google.com/file/d/15DKjM5IvqPrLVlXaCf6JxAaVjFIgVN7k/view?usp=drive_link",
+  "Web Development": "https://drive.google.com/file/d/1qHVRN5WSVr8wtBcGcm7WRWDtq7aDpaUW/view?usp=sharing",
   "Android App Development": "https://drive.google.com/file/d/12yIhG_iDnKNQ8eBuwx-q1G6R6hU20F-5/view?usp=drive_link",
   "Data Science": "https://drive.google.com/file/d/1t2yWQYlSLniWS4Xcc_m50gaP36PjN5ip/view?usp=drive_link",
   "UI/UX Design": "https://drive.google.com/file/d/1DN8cfbh1Q-mooFmwpa5L74_eX-vf18rp/view?usp=drive_link",
   "Machine Learning": "https://drive.google.com/file/d/1VMtWpsRez0a8PvGqNq696HIwtD6ZNXci/view?usp=drive_link",
-  "Python Programming": "https://drive.google.com/file/d/1msG-E2er-vVRg_RKWxOSGmlg52HfNURV/view?usp=drive_link",
-  "C++ Programming": "https://drive.google.com/file/d/1ZHXta1_ulHtlkGksz1sY7gCLnO9K0orn/view?usp=drive_link",
+  "Python Programming": "https://drive.google.com/file/d/1wbrWmrAvl1tkbVyVUQnX06F3Sb_seAoq/view?usp=sharing",
+  "C++ Programming": "https://drive.google.com/file/d/1U3BsUNMI94lp8Ceg8mSmSVqzvUy4ctGj/view?usp=sharing",
 }
 
 // ✅ Fallback task link
