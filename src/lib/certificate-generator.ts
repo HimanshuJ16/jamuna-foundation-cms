@@ -153,28 +153,28 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
 
     // Add C.ID in top left
     doc.setFontSize(10)
-    doc.setFont("Poppins", "bold")
+    doc.setFont("times", "bold")
     doc.text(`C.ID: ${data.submissionId}`, centerX + 60, 20, { align: "left" })
 
     // Main title - CERTIFICATE
     doc.setFontSize(56)
-    doc.setFont("Bellefair", "normal")
+    doc.setFont("times", "normal")
     doc.text("CERTIFICATE", centerX, 53, { align: "center" })
 
     // Subtitle - OF COMPLETION
     doc.setFontSize(24)
-    doc.setFont("Poppins", "normal")
+    doc.setFont("times", "normal")
     doc.text("OF COMPLETION", centerX, 68, { align: "center" })
 
     // PROUDLY PRESENTED TO
     doc.setFontSize(12)
-    doc.setFont("Poppins", "normal")
+    doc.setFont("times", "normal")
     doc.setTextColor(0, 0, 0) // Black
     doc.text("THIS IS TO CERTIFY THAT", centerX, 83, { align: "center" })
 
     // Candidate name with underline
     doc.setFontSize(45)
-    doc.setFont("Bellefair", "normal")
+    doc.setFont("times", "normal")
     doc.text(data.candidateName, centerX, 103, { align: "center" })
 
     // Underline for name
@@ -210,14 +210,14 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
       const words = part.text.split(" ")
       for (let i = 0; i < words.length; i++) {
         const word = words[i] + (i < words.length - 1 ? " " : "") // Re-add space
-        doc.setFont("Poppins", part.style) // Set font to measure word width accurately
+        doc.setFont("times", part.style) // Set font to measure word width accurately
         const wordWidth = doc.getTextWidth(word)
 
         if (currentLineTextWidth + wordWidth > maxWidth && currentLine.length > 0) {
           // Line is full, draw it
           let startX = leftMargin + (maxWidth - currentLineTextWidth) / 2
           for (const linePart of currentLine) {
-            doc.setFont("Poppins", linePart.style)
+            doc.setFont("times", linePart.style)
             doc.text(linePart.text, startX, y)
             startX += linePart.width
           }
@@ -235,7 +235,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
     if (currentLine.length > 0) {
       let startX = leftMargin + (maxWidth - currentLineTextWidth) / 2
       for (const linePart of currentLine) {
-        doc.setFont("Poppins", linePart.style)
+        doc.setFont("times", linePart.style)
         doc.text(linePart.text, startX, y)
         startX += linePart.width
       }
@@ -257,7 +257,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
 
     // Footer section
     doc.setFontSize(11)
-    doc.setFont("Poppins", "bold")
+    doc.setFont("times", "bold")
     doc.text("President", leftMargin + 11, 172)
     doc.text("(Jamuna Foundation)", leftMargin, 177)
 
@@ -271,7 +271,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
 
         // Add "Scan to Verify" text below QR code
         doc.setFontSize(8)
-        doc.setFont("Poppins", "normal")
+        doc.setFont("times", "normal")
         doc.text("Scan to Verify", pageWidth - 63.5, bottomY + 32, { align: "center" })
       } else {
         throw new Error("Failed to generate QR code")
@@ -282,7 +282,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
       doc.setDrawColor(0, 0, 0)
       doc.rect(pageWidth - 76, bottomY + 3, 25, 25)
       doc.setFontSize(8)
-      doc.setFont("Poppins", "normal")
+      doc.setFont("times", "normal")
       doc.text("QR Code", pageWidth - 63.5, bottomY + 18, { align: "center" })
       doc.text("Unavailable", pageWidth - 63.5, bottomY + 22, { align: "center" })
     }
