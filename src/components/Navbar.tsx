@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Home, FileText, Award, LayoutDashboard, Users, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 const navigationItems = [
   {
@@ -40,6 +41,12 @@ const navigationItems = [
 export function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await fetch('/api/logout') // destroy cookie
+    router.push('/auth/passcode') // redirect
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-blue-50 to-indigo-50/95 backdrop-blur supports-[backdrop-filter]:bg-blue-50/80 shadow-sm">
@@ -87,6 +94,13 @@ export function Navbar() {
                 </Button>
               )
             })}
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="px-4 py-2 text-sm font-semibold text-red-600 hover:text-white hover:bg-red-500 transition-colors"
+            >
+              Logout
+            </Button>
           </div>
 
           {/* Mobile Navigation */}
@@ -112,14 +126,6 @@ export function Navbar() {
                     className="rounded-lg"
                   />
                 </Link>
-                {/* <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                  className="text-gray-700 hover:text-blue-600"
-                >
-                  <X className="w-6 h-6" />
-                </Button> */}
               </div>
 
               <div className="flex flex-col space-y-3">
@@ -147,6 +153,14 @@ export function Navbar() {
                     </Button>
                   )
                 })}
+
+                <Button
+                  variant="destructive"
+                  onClick={handleLogout}
+                  className="w-full mt-6"
+                >
+                  Logout
+                </Button>
               </div>
 
               <div className="mt-12 pt-6 border-t border-gray-200">
