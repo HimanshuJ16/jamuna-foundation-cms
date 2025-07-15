@@ -5,34 +5,41 @@ import { uploadToCloudinary } from "@/lib/cloudinary-storage"
 
 const prisma = new PrismaClient()
 
+// ✅ Google Drive task link mapping
+const taskLinksByDomain: Record<string, string> = {
+  "Web Development": "https://drive.google.com/file/d/15DKjM5IvqPrLVlXaCf6JxAaVjFIgVN7k/view?usp=drive_link",
+  "Android App Development": "https://drive.google.com/file/d/12yIhG_iDnKNQ8eBuwx-q1G6R6hU20F-5/view?usp=drive_link",
+  "Data Science": "https://drive.google.com/file/d/1t2yWQYlSLniWS4Xcc_m50gaP36PjN5ip/view?usp=drive_link",
+  "UI/UX Design": "https://drive.google.com/file/d/1DN8cfbh1Q-mooFmwpa5L74_eX-vf18rp/view?usp=drive_link",
+  "Machine Learning": "https://drive.google.com/file/d/1VMtWpsRez0a8PvGqNq696HIwtD6ZNXci/view?usp=drive_link",
+  "Python Programming": "https://drive.google.com/file/d/1msG-E2er-vVRg_RKWxOSGmlg52HfNURV/view?usp=drive_link",
+  "C++ Programming": "https://drive.google.com/file/d/1ZHXta1_ulHtlkGksz1sY7gCLnO9K0orn/view?usp=drive_link",
+}
+
+// ✅ Fallback task link
+const fallbackTaskLink = "https://drive.google.com/drive/folders/1h4SHZvmquQKFmHlt4M5jdjQ6vJ5POSDN?usp=sharing"
+
 export async function POST(request: NextRequest) {
   try {
     let parsedData: any = {}
 
-    // Parse the request body
     const contentType = request.headers.get("content-type") || ""
-    console.log("📥 Content-Type:", contentType)
 
     if (contentType.includes("application/json")) {
-      console.log("📝 Parsing as JSON...")
       const rawBody = await request.json()
-      console.log("🔍 Raw JSON body received:", JSON.stringify(rawBody, null, 2))
-
-      // Extract data from nested structure if available
+      if (process.env.NODE_ENV !== "production") {
+        console.log("🔍 Raw JSON body:", rawBody)
+      }
       parsedData = rawBody.data || rawBody
     } else {
-      // Try form data if JSON is not available
       const formData = await request.formData()
       for (const [key, value] of formData.entries()) {
         parsedData[key] = value
       }
     }
 
-    console.log("📋 Parsed offer letter data:", parsedData)
-
-    // Extract required and additional fields
     const {
-      id, // required submission id
+      id,
       first_name,
       last_name,
       domain,
@@ -49,7 +56,6 @@ export async function POST(request: NextRequest) {
       signature,
     } = parsedData
 
-    // Validate required fields
     if (!id || !first_name || !last_name || !domain) {
       return NextResponse.json(
         {
@@ -62,19 +68,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Set default date_time if not provided
     const submissionTimestamp = date_time ? new Date(date_time) : new Date()
-    if (!date_time) {
-      console.log("📅 date_time not provided; using current timestamp:", submissionTimestamp.toISOString())
-    }
 
-    // Check if offer letter already exists
     const existingOfferLetter = await prisma.offerLetter.findUnique({
       where: { submissionId: id },
     }).catch(() => null)
 
+    const baseUrl = request.nextUrl.origin
+
     if (existingOfferLetter) {
-      const baseUrl = request.nextUrl.origin
       const downloadUrl = `${baseUrl}/api/offer-letter/download-offer-letter/${id}`
       const viewUrl = `${baseUrl}/api/offer-letter/view-offer-letter/${id}`
 
@@ -89,9 +91,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Calculate internship start and end dates using rules:
-    //  - If day of submission (date_time) is between 1 and 12, set startDate to 15th of the same month.
-    //  - Otherwise, startDate is the 1st of the next month.
     const submissionDate = submissionTimestamp
     const startDate = new Date(submissionDate)
     const day = submissionDate.getDate()
@@ -99,13 +98,9 @@ export async function POST(request: NextRequest) {
     const year = submissionDate.getFullYear()
 
     if (day >= 1 && day <= 12) {
-      startDate.setFullYear(year)
-      startDate.setMonth(month)
-      startDate.setDate(15)
+      startDate.setFullYear(year, month, 15)
     } else {
-      startDate.setFullYear(year)
-      startDate.setMonth(month + 1)
-      startDate.setDate(1)
+      startDate.setFullYear(year, month + 1, 1)
     }
 
     let endDate: Date
@@ -113,11 +108,9 @@ export async function POST(request: NextRequest) {
       endDate = new Date(startDate)
       endDate.setDate(endDate.getDate() + 30)
     } else {
-      // Set endDate to the last day of the start month
       endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0)
     }
 
-    // Format dates for PDF generation (using en-GB format)
     const formattedStartDate = startDate.toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "2-digit",
@@ -129,8 +122,6 @@ export async function POST(request: NextRequest) {
       year: "numeric",
     })
 
-    // Generate Offer Letter PDF
-    console.log("📄 Generating offer letter PDF...")
     const pdfBuffer = await generateOfferLetterPDF({
       candidateName: `${first_name} ${last_name}`,
       domain,
@@ -138,17 +129,12 @@ export async function POST(request: NextRequest) {
       endDate: formattedEndDate,
       submissionId: id,
     })
-    console.log(`✅ PDF generated, size: ${pdfBuffer.length} bytes`)
 
-    // Upload to Cloudinary
     const fileName = `Internship_Offer_Letter_${first_name}_${last_name}_${id}.pdf`
-    console.log("☁️ Uploading offer letter to Cloudinary...")
     const cloudinaryUrl = await uploadToCloudinary(pdfBuffer, fileName)
-    console.log(`✅ Upload successful: ${cloudinaryUrl}`)
 
-    // Store offer letter in database
     try {
-      const offerLetter = await prisma.offerLetter.create({
+      await prisma.offerLetter.create({
         data: {
           submissionId: id,
           firstName: first_name,
@@ -170,16 +156,18 @@ export async function POST(request: NextRequest) {
           signature: signature || "",
         },
       })
-      console.log("✅ Offer letter record saved to database")
     } catch (dbError) {
-      console.warn("⚠️ Could not save to database:", dbError)
-      // Optionally continue processing even if saving to the database fails
+      console.warn("⚠️ Database insert failed:", dbError)
     }
 
-    // Generate URLs for download and view
-    const baseUrl = request.nextUrl.origin
     const downloadUrl = `${baseUrl}/api/offer-letter/download-offer-letter/${id}`
     const viewUrl = `${baseUrl}/api/offer-letter/view-offer-letter/${id}`
+
+    // ✅ Normalize domain & resolve task link
+    const normalizedDomain = domain.trim().toLowerCase()
+    const taskLink =
+      Object.entries(taskLinksByDomain).find(([key]) => key.toLowerCase() === normalizedDomain)?.[1] ||
+      fallbackTaskLink 
 
     return NextResponse.json({
       success: true,
@@ -188,6 +176,9 @@ export async function POST(request: NextRequest) {
       domain,
       offerLetterUrl: downloadUrl,
       viewUrl: viewUrl,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+      taskLink,
       debug: {
         pdfSize: pdfBuffer.length,
         fileName,

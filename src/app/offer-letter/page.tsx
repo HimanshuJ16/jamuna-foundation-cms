@@ -355,7 +355,10 @@ export default function Component() {
   "candidateName": "John Doe",
   "domain": "Web Development", 
   "offerLetterUrl": "http://localhost:3000/api/offer-letter/download-offer-letter/submission_123",
-  "viewUrl": "http://localhost:3000/api/offer-letter/view-offer-letter/submission_123"
+  "viewUrl": "http://localhost:3000/api/offer-letter/view-offer-letter/submission_123",
+  "startDate": "01/08/2025"                                                                        
+  "endDate": "31/08/2025"                                                                      
+  "taskLink": "https://drive.google.com/file/d/1DN8cfbh1Q-mooFmwpa5L74_eX-vf18rp/view?usp=drive_link"
 }`}
                       className="font-mono text-sm"
                       rows={12}
