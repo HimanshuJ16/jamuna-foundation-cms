@@ -57,6 +57,7 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<Buf
     const logoBase64 = await loadImageFromPublic("/images/logo.png")
     const signatureBase64 = await loadImageFromPublic("/images/signature.jpg")
     const watermarkBase64 = await loadImageFromPublic("/images/watermark.jpg")
+    const stampBase64 = await loadImageFromPublic("/images/stamp-gemini.png")
 
     // Add logo at the top (if available)
     if (logoBase64) {
@@ -270,6 +271,15 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<Buf
         console.log("✅ Signature added successfully")
       } catch (signatureError) {
         console.warn("⚠️ Could not add signature:", signatureError)
+      }
+    }
+
+    if (stampBase64) {
+      try {
+        doc.addImage(stampBase64, "PNG", 133, 250, 35, 35)
+        console.log("✅ stamp added successfully")
+      } catch (stampError) {
+        console.warn("⚠️ Could not add stamp:", stampError)
       }
     }
 

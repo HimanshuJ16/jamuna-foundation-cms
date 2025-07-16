@@ -131,6 +131,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
     const logoBase64 = await loadImageFromPublic("/images/logo-text.png")
     const signatureBase64 = await loadImageFromPublic("/images/signature.jpg")
     const watermarkBase64 = await loadImageFromPublic("/images/watermark.jpg")
+    const stampBase64 = await loadImageFromPublic("/images/stamp-gemini.png")
 
     // Add logo (top right)
     if (logoBase64) {
@@ -252,6 +253,15 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
         console.log("✅ Signature added successfully")
       } catch (signatureError) {
         console.warn("⚠️ Could not add signature:", signatureError)
+      }
+    }
+    
+    if (stampBase64) {
+      try {
+        doc.addImage(stampBase64, "PNG", 133, 150, 35, 35)
+        console.log("✅ stamp added successfully")
+      } catch (stampError) {
+        console.warn("⚠️ Could not add stamp:", stampError)
       }
     }
 
