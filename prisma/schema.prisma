@@ -58,6 +58,7 @@ model Certificate {
   githubTask5        String?
   hostedWebsite      String?
   experienceLink     String?
+  status             String?
   donation           String?
   cloudinaryUrl      String
   submissionDateTime DateTime
