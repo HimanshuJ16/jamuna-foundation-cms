@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
       hosted_website,
       experience_link,
       donation,
+      status,
     } = parsedData
 
     // Validate required fields
@@ -147,6 +148,7 @@ export async function POST(request: NextRequest) {
           githubTask5: github_task5 || null,
           hostedWebsite: hosted_website || null,
           experienceLink: experience_link || null,
+          status: status || null,
           donation: donation || null,
           cloudinaryUrl,
           submissionDateTime: new Date(date_time || new Date()),
