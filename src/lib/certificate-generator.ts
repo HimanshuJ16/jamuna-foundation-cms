@@ -300,7 +300,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
     // Footer text
     doc.setTextColor(0, 0, 0)
     doc.setFontSize(10)
-    doc.text("contact@jamunafoundation.com", 30, pageHeight - 15)
+    doc.text("jamunafoundation@gmail.com", 30, pageHeight - 15)
     doc.text("www.jamunafoundation.com", centerX, pageHeight - 15, { align: "center" })
     const currentDate = new Date().toLocaleDateString("en-GB")
     doc.text(`Date: ${currentDate}`, pageWidth - 30, pageHeight - 15, { align: "right" })
