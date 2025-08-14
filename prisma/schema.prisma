@@ -58,6 +58,8 @@ model Certificate {
   githubTask5        String?
   hostedWebsite      String?
   experienceLink     String?
+  orderId            String?
+  razorpayPaymentId  String?
   status             String?
   donation           String?
   cloudinaryUrl      String

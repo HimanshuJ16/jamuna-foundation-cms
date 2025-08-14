@@ -55,6 +55,8 @@ export async function POST(request: NextRequest) {
       experience_link,
       donation,
       status,
+      order_id,
+      payment_id,
     } = parsedData
 
     // Validate required fields
@@ -149,6 +151,8 @@ export async function POST(request: NextRequest) {
           hostedWebsite: hosted_website || null,
           experienceLink: experience_link || null,
           status: status || null,
+          orderId: order_id || null,
+          razorpayPaymentId: payment_id || null,
           donation: donation || null,
           cloudinaryUrl,
           submissionDateTime: new Date(date_time || new Date()),
