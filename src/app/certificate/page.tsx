@@ -415,7 +415,10 @@ export default function CertificatePage() {
     "hosted_website": "https://eqw.com",
     "experience_link": "https://eqw.com",
     "donation": "199 INR",
-    "date_time": "2025-07-13T08:13:26.720Z"
+    "date_time": "2025-07-13T08:13:26.720Z",
+    "status": "CONFIRMED",
+    "order_id": "5681d22e-c217-44ab-9d70-d858d40ad03a",
+    "payment_id": "pay_R5DTg4q7pBcisK"
   }
 }`}
                       className="font-mono text-sm"
@@ -436,6 +439,34 @@ export default function CertificatePage() {
   "domain": "Artificial Intelligence",
   "certificateUrl": "http://localhost:3000/api/certificate/download-certificate/38afcad3-f5d0-477d-b4e2-6a351912509d",
   "viewUrl": "http://localhost:3000/api/certificate/view-certificate/38afcad3-f5d0-477d-b4e2-6a351912509d"
+}`}
+                      className="font-mono text-sm"
+                      rows={12}
+                    />
+                  </code>
+              </div>
+
+              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <h3 className="font-semibold mb-2 text-orange-900">Request Body for Payment Verification (Wix Format)</h3>
+                  <code className="bg-orange-100 px-3 py-2 rounded text-sm text-orange-800 block">
+                    <Textarea
+                      readOnly
+                      value={`https://jamuna-foundation-cms.vercel.app/api/get-submission?submissionId={submissionId}`}
+                      className="font-mono text-sm"
+                      rows={12}
+                    />
+                  </code>
+              </div>
+
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h3 className="font-semibold mb-2 text-blue-900">Response</h3>
+                  <code className="bg-blue-100 px-3 py-2 rounded text-sm text-blue-800 block">
+                    <Textarea
+                      readOnly
+                      value={`{
+  "status": "CONFIRMED",
+  "orderId": "5681d22e-c217-44ab-9d70-d858d40ad03a",
+  "paymentId": "pay_R5DTg4q7pBcisK"
 }`}
                       className="font-mono text-sm"
                       rows={12}

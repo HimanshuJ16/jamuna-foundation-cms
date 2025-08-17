@@ -19,6 +19,20 @@ function formatDate(dateStr: string): string {
   })
 }
 
+// Function to format date and optionally add days
+function formatDate1(dateStr: string, addDays: number = 0): string {
+  const [day, month, year] = dateStr.split("/").map(Number);
+  const date = new Date(year, month - 1, day);
+  if (addDays > 0) {
+    date.setDate(date.getDate() + addDays); // Add specified number of days
+  }
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 // Function to load image from public folder
 async function loadImageFromPublic(imagePath: string): Promise<string> {
   try {
@@ -302,8 +316,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
     doc.setFontSize(10)
     doc.text("jamunafoundation@gmail.com", 30, pageHeight - 15)
     doc.text("www.jamunafoundation.com", centerX, pageHeight - 15, { align: "center" })
-    const currentDate = new Date().toLocaleDateString("en-GB")
-    doc.text(`Date: ${currentDate}`, pageWidth - 30, pageHeight - 15, { align: "right" })
+    doc.text(`Date: ${formatDate1(data.endDate, 3)}`, pageWidth - 30, pageHeight - 15, { align: "right" })
 
     // Generate PDF buffer
     const pdfArrayBuffer = doc.output("arraybuffer")

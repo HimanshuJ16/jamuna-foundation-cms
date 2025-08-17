@@ -45,6 +45,18 @@ interface CertificateDetails {
   totalGithubLinks: number
 }
 
+function formatDateWithOffset(dateStr: string, daysToAdd: number): string {
+  const date = new Date(dateStr); // Parse ISO date string (e.g., "2025-08-29T00:00:00.000Z")
+  date.setDate(date.getDate() + daysToAdd); // Add specified days
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function VerifyCertificate({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [certificate, setCertificate] = useState<CertificateDetails | null>(null)
@@ -142,7 +154,7 @@ export default function VerifyCertificate({ params }: { params: Promise<{ id: st
                 asChild
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
-                <Link href="/">Return to Home</Link>
+                <Link href="https://www.jamunafoundation.com/">Return to Home</Link>
               </Button>
             </CardContent>
           </Card>
@@ -286,13 +298,7 @@ export default function VerifyCertificate({ params }: { params: Promise<{ id: st
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-1">Certificate Issued</p>
                       <p className="text-sm font-medium text-gray-900">
-                        {new Date(certificate.createdAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {formatDateWithOffset(certificate.endDate, 3)}
                       </p>
                     </div>
                   </div>

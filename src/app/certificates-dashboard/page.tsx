@@ -40,6 +40,16 @@ interface Certificate {
   createdAt: string
 }
 
+function formatDateWithOffset(dateStr: string, daysToAdd: number): string {
+  const date = new Date(dateStr); // Parse ISO date string (e.g., "2025-08-29T00:00:00.000Z")
+  date.setDate(date.getDate() + daysToAdd); // Add specified days
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export default function CertificatesDashboard() {
   const [certificates, setCertificates] = useState<Certificate[]>([])
   const [loading, setLoading] = useState(true)
@@ -335,6 +345,10 @@ export default function CertificatesDashboard() {
                         month: "long",
                         day: "numeric",
                       })}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Issued:{" "}
+                      {formatDateWithOffset(cert.endDate, 3)}
                     </div>
                     <div className="text-xs text-gray-400">#{index + 1 + (page - 1) * 10}</div>
                   </div>
