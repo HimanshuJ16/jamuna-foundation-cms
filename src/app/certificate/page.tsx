@@ -451,7 +451,7 @@ export default function CertificatePage() {
                   <code className="bg-orange-100 px-3 py-2 rounded text-sm text-orange-800 block">
                     <Textarea
                       readOnly
-                      value={`https://jamuna-foundation-cms.vercel.app/api/get-submission?submissionId={submissionId}`}
+                      value={`https://ims.jamunafoundation.com/api/get-submission?submissionId={submissionId}`}
                       className="font-mono text-sm"
                       rows={12}
                     />

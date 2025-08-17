@@ -11,7 +11,7 @@ interface QRCodeInfoProps {
 export function QRCodeInfo({ submissionId }: QRCodeInfoProps) {
   const verificationUrl = submissionId
     ? `${typeof window !== "undefined" ? window.location.origin : ""}/verify-certificate/${submissionId}`
-    : "https://jamuna-foundation-cms.vercel.app/verify-certificate/[ID]"
+    : "https://ims.jamunafoundation.com/verify-certificate/[ID]"
 
   return (
     <Card className="shadow-lg border-0 bg-gradient-to-r from-green-50 to-emerald-50">
