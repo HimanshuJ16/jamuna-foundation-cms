@@ -79,6 +79,13 @@ export async function POST(request: NextRequest) {
       })
       .catch(() => null) // Handle if table doesn't exist yet
 
+    const formattedFirstName = first_name.toLowerCase().split(" ").filter(Boolean).map(
+      (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(" ");     
+    const formattedLastName = last_name.toLowerCase().split(" ").filter(Boolean).map(
+      (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(" ");   
+
     if (existingCertificate) {
       const baseUrl = request.nextUrl.origin
       const downloadUrl = `${baseUrl}/api/certificate/download-certificate/${submission_id}`
@@ -87,7 +94,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         submissionId: submission_id,
-        candidateName: `${first_name} ${last_name}`,
+        candidateName: `${formattedFirstName} ${formattedLastName}`,
         domain,
         certificateUrl: downloadUrl,
         viewUrl: viewUrl,
@@ -110,7 +117,7 @@ export async function POST(request: NextRequest) {
     // Generate certificate PDF
     console.log("📜 Generating certificate...")
     const pdfBuffer = await generateCertificatePDF({
-      candidateName: `${first_name} ${last_name}`,
+      candidateName: `${formattedFirstName} ${formattedLastName}`,
       domain,
       startDate: formattedStartDate,
       endDate: formattedEndDate,
@@ -120,7 +127,7 @@ export async function POST(request: NextRequest) {
     console.log(`✅ Certificate generated, size: ${pdfBuffer.length} bytes`)
 
     // Upload to Cloudinary using the certificate-specific function
-    const fileName = `Internship_Certificate_${first_name}_${last_name}_${submission_id}.pdf`
+    const fileName = `Internship_Certificate_${formattedFirstName}_${formattedLastName}_${submission_id}.pdf`
     console.log("☁️ Uploading certificate to Cloudinary (certificates folder)...")
     const cloudinaryUrl = await uploadCertificateToCloudinary(pdfBuffer, fileName)
 
@@ -131,8 +138,8 @@ export async function POST(request: NextRequest) {
       const certificate = await prisma.certificate.create({
         data: {
           submissionId: submission_id,
-          firstName: first_name,
-          lastName: last_name,
+          firstName: formattedFirstName,
+          lastName: formattedLastName,
           email: email || "",
           domain,
           startDate: new Date(start_date),
@@ -175,7 +182,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       submissionId: submission_id,
-      candidateName: `${first_name} ${last_name}`,
+      candidateName: `${formattedFirstName} ${formattedLastName}`,
       domain,
       certificateUrl: downloadUrl,
       viewUrl: viewUrl,

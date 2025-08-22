@@ -122,23 +122,30 @@ export async function POST(request: NextRequest) {
       year: "numeric",
     })
 
+    const formattedFirstName = first_name.toLowerCase().split(" ").filter(Boolean).map(
+      (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(" ");     
+    const formattedLastName = last_name.toLowerCase().split(" ").filter(Boolean).map(
+      (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(" "); 
+
     const pdfBuffer = await generateOfferLetterPDF({
-      candidateName: `${first_name} ${last_name}`,
+      candidateName: `${formattedFirstName} ${formattedLastName}`,
       domain,
       startDate: formattedStartDate,
       endDate: formattedEndDate,
       submissionId: id,
     })
 
-    const fileName = `Internship_Offer_Letter_${first_name}_${last_name}_${id}.pdf`
+    const fileName = `Internship_Offer_Letter_${formattedFirstName}_${formattedLastName}_${id}.pdf`
     const cloudinaryUrl = await uploadToCloudinary(pdfBuffer, fileName)
 
     try {
       await prisma.offerLetter.create({
         data: {
           submissionId: id,
-          firstName: first_name,
-          lastName: last_name,
+          firstName: formattedFirstName,
+          lastName: formattedLastName,
           domain,
           startDate,
           endDate,
@@ -172,7 +179,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       submissionId: id,
-      candidateName: `${first_name} ${last_name}`,
+      candidateName: `${formattedFirstName} ${formattedLastName}`,
       domain,
       offerLetterUrl: downloadUrl,
       viewUrl: viewUrl,

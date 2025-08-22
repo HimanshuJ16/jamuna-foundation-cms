@@ -58,10 +58,17 @@ export async function POST(request: NextRequest) {
 
     console.log("📅 Calculated dates:", { formattedStartDate, formattedEndDate })
 
+    const formattedFirstName = first_name.toLowerCase().split(" ").filter(Boolean).map(
+      (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(" ");     
+    const formattedLastName = last_name.toLowerCase().split(" ").filter(Boolean).map(
+      (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(" "); 
+
     // Generate PDF
     console.log("📄 Generating preview PDF...")
     const pdfBuffer = await generateOfferLetterPDF({
-      candidateName: `${first_name} ${last_name}`,
+      candidateName: `${formattedFirstName} ${formattedLastName}`,
       domain,
       startDate: formattedStartDate,
       endDate: formattedEndDate,
@@ -72,7 +79,7 @@ export async function POST(request: NextRequest) {
     console.log("📊 PDF buffer size:", pdfBuffer.length, "bytes")
 
     // Return the PDF directly for preview
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",

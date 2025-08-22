@@ -33,10 +33,17 @@ export async function POST(request: NextRequest) {
 
     console.log("📅 Formatted dates:", { formattedStartDate, formattedEndDate })
 
+    const formattedFirstName = first_name.toLowerCase().split(" ").filter(Boolean).map(
+      (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(" ");     
+    const formattedLastName = last_name.toLowerCase().split(" ").filter(Boolean).map(
+      (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(" "); 
+
     // Generate certificate PDF
     console.log("📜 Generating preview certificate...")
     const pdfBuffer = await generateCertificatePDF({
-      candidateName: `${first_name} ${last_name}`,
+      candidateName: `${formattedFirstName} ${formattedLastName}`,
       domain,
       startDate: formattedStartDate,
       endDate: formattedEndDate,
@@ -51,7 +58,7 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="Preview_Certificate_${first_name}_${last_name}.pdf"`,
+        "Content-Disposition": `inline; filename="Preview_Certificate_${formattedFirstName}_${formattedLastName}.pdf"`,
         "Cache-Control": "no-cache",
       },
     })
