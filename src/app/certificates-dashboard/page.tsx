@@ -23,6 +23,13 @@ import {
   TrendingUp,
   CheckCircle,
 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Navbar } from "@/components/Navbar"
 import { toast } from "sonner"
 
@@ -44,6 +51,39 @@ interface Certificate {
   createdAt: string
 }
 
+interface CertificateDetails {
+  id: string
+  submissionId: string
+  firstName: string
+  lastName: string
+  email: string
+  domain: string
+  startDate: string
+  endDate: string
+  tasksPerformed: number
+  linkedinTask1: string | null
+  linkedinTask2: string | null
+  linkedinTask3: string | null
+  linkedinTask4: string | null
+  linkedinTask5: string | null
+  githubTask1: string | null
+  githubTask2: string | null
+  githubTask3: string | null
+  githubTask4: string | null
+  githubTask5: string | null
+  hostedWebsite: string | null
+  experienceLink: string | null
+  donation: string | null
+  cloudinaryUrl: string
+  submissionDateTime: string
+  createdAt: string
+  candidateName: string
+  linkedinLinks: string[]
+  githubLinks: string[]
+  totalLinkedinLinks: number
+  totalGithubLinks: number
+}
+
 function formatDateWithOffset(dateStr: string, daysToAdd: number): string {
   const date = new Date(dateStr)
   date.setDate(date.getDate() + daysToAdd)
@@ -62,6 +102,9 @@ export default function CertificatesDashboard() {
   const [domain, setDomain] = useState("All domains")
   const [pagination, setPagination] = useState<any>({})
   const [activeTab, setActiveTab] = useState("pending")
+  const [selectedCertificate, setSelectedCertificate] = useState<CertificateDetails | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogLoading, setDialogLoading] = useState(false)
 
   const fetchCertificates = async () => {
     setLoading(true)
@@ -109,7 +152,7 @@ export default function CertificatesDashboard() {
         toast("Success", {
           description: "Certificate approved successfully",
         })
-        fetchCertificates() // Refresh the list
+        fetchCertificates()
       } else {
         toast("Error", {
           description: data.message || "Failed to approve certificate",
@@ -119,6 +162,30 @@ export default function CertificatesDashboard() {
       toast("Error", {
         description: "Failed to approve certificate",
       })
+    }
+  }
+
+  const fetchCertificateDetails = async (submissionId: string) => {
+    setDialogLoading(true)
+    try {
+      const response = await fetch(`/api/certificate/get-certificate-details/${submissionId}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setSelectedCertificate(data.certificate)
+        setDialogOpen(true)
+      } else {
+        toast("Error", {
+          description: data.message || "Failed to fetch certificate details",
+        })
+      }
+    } catch (error) {
+      console.error("Error fetching certificate details:", error)
+      toast("Error", {
+        description: "Failed to fetch certificate details",
+      })
+    } finally {
+      setDialogLoading(false)
     }
   }
 
@@ -379,20 +446,156 @@ export default function CertificatesDashboard() {
                             View
                           </a>
                         </Button>
-                        <Button
-                          asChild
-                          variant="outline"
-                          className="border-2 hover:bg-blue-50 hover:border-blue-300 bg-transparent"
-                        >
-                          <a
-                            href={`/api/certificate/get-certificate-details/${cert.submissionId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Details
-                          </a>
-                        </Button>
+                        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="border-2 hover:bg-blue-50 hover:border-blue-300 bg-transparent"
+                              onClick={() => fetchCertificateDetails(cert.submissionId)}
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Details
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[800px] h-[550px] bg-white/90 backdrop-blur-sm">
+                            <DialogHeader>
+                              <DialogTitle className="text-2xl font-bold text-gray-900">
+                                Certificate Details
+                              </DialogTitle>
+                            </DialogHeader>
+                            {dialogLoading ? (
+                              <div className="text-center py-8">
+                                <RefreshCw className="w-8 h-8 text-purple-600 animate-spin mx-auto" />
+                                <p className="text-gray-600 mt-4">Loading details...</p>
+                              </div>
+                            ) : selectedCertificate ? (
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Submission ID</p>
+                                    <p className="text-gray-900">{selectedCertificate.submissionId}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Candidate Name</p>
+                                    <p className="text-gray-900">{selectedCertificate.candidateName}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Email</p>
+                                    <p className="text-gray-900">{selectedCertificate.email}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Domain</p>
+                                    <p className="text-gray-900">{selectedCertificate.domain}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Start Date</p>
+                                    <p className="text-gray-900">
+                                      {new Date(selectedCertificate.startDate).toLocaleDateString("en-US", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                      })}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">End Date</p>
+                                    <p className="text-gray-900">
+                                      {new Date(selectedCertificate.endDate).toLocaleDateString("en-US", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                      })}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Tasks Performed</p>
+                                    <p className="text-gray-900">{selectedCertificate.tasksPerformed}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Donation</p>
+                                    <p className="text-gray-900">{selectedCertificate.donation || "None"}</p>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">LinkedIn Links</p>
+                                    {selectedCertificate.linkedinLinks.length > 0 ? (
+                                      <ul className="list-disc pl-5 text-gray-900">
+                                        {selectedCertificate.linkedinLinks.map((link, idx) => (
+                                          <li key={idx}>
+                                            <a
+                                              href={link}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-600 hover:underline"
+                                            >
+                                              Link {idx + 1}
+                                            </a>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p className="text-gray-900">None</p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">GitHub Links</p>
+                                    {selectedCertificate.githubLinks.length > 0 ? (
+                                      <ul className="list-disc pl-5 text-gray-900">
+                                        {selectedCertificate.githubLinks.map((link, idx) => (
+                                          <li key={idx}>
+                                            <a
+                                              href={link}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-600 hover:underline"
+                                            >
+                                              Repo {idx + 1}
+                                            </a>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p className="text-gray-900">None</p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Hosted Website</p>
+                                    {selectedCertificate.hostedWebsite ? (
+                                      <a
+                                        href={selectedCertificate.hostedWebsite}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                      >
+                                        {selectedCertificate.hostedWebsite}
+                                      </a>
+                                    ) : (
+                                      <p className="text-gray-900">None</p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Experience Link</p>
+                                    {selectedCertificate.experienceLink ? (
+                                      <a
+                                        href={selectedCertificate.experienceLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                      >
+                                        {selectedCertificate.experienceLink}
+                                      </a>
+                                    ) : (
+                                      <p className="text-gray-900">None</p>
+                                    )}
+                                  </div>                                
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-gray-600">No details available</p>
+                            )}
+                          </DialogContent>
+                        </Dialog>
                       </div>
 
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
@@ -547,20 +750,156 @@ export default function CertificatesDashboard() {
                             View
                           </a>
                         </Button>
-                        <Button
-                          asChild
-                          variant="outline"
-                          className="border-2 hover:bg-blue-50 hover:border-blue-300 bg-transparent"
-                        >
-                          <a
-                            href={`/api/certificate/get-certificate-details/${cert.submissionId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Details
-                          </a>
-                        </Button>
+                        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="border-2 hover:bg-blue-50 hover:border-blue-300 bg-transparent"
+                              onClick={() => fetchCertificateDetails(cert.submissionId)}
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Details
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[800px] h-[550px] bg-white/90 backdrop-blur-sm">
+                            <DialogHeader>
+                              <DialogTitle className="text-2xl font-bold text-gray-900">
+                                Certificate Details
+                              </DialogTitle>
+                            </DialogHeader>
+                            {dialogLoading ? (
+                              <div className="text-center py-8">
+                                <RefreshCw className="w-8 h-8 text-purple-600 animate-spin mx-auto" />
+                                <p className="text-gray-600 mt-4">Loading details...</p>
+                              </div>
+                            ) : selectedCertificate ? (
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Submission ID</p>
+                                    <p className="text-gray-900">{selectedCertificate.submissionId}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Candidate Name</p>
+                                    <p className="text-gray-900">{selectedCertificate.candidateName}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Email</p>
+                                    <p className="text-gray-900">{selectedCertificate.email}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Domain</p>
+                                    <p className="text-gray-900">{selectedCertificate.domain}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Start Date</p>
+                                    <p className="text-gray-900">
+                                      {new Date(selectedCertificate.startDate).toLocaleDateString("en-US", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                      })}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">End Date</p>
+                                    <p className="text-gray-900">
+                                      {new Date(selectedCertificate.endDate).toLocaleDateString("en-US", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                      })}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Tasks Performed</p>
+                                    <p className="text-gray-900">{selectedCertificate.tasksPerformed}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Donation</p>
+                                    <p className="text-gray-900">{selectedCertificate.donation || "None"}</p>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">LinkedIn Links</p>
+                                    {selectedCertificate.linkedinLinks.length > 0 ? (
+                                      <ul className="list-disc pl-5 text-gray-900">
+                                        {selectedCertificate.linkedinLinks.map((link, idx) => (
+                                          <li key={idx}>
+                                            <a
+                                              href={link}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-600 hover:underline"
+                                            >
+                                              Link {idx + 1}
+                                            </a>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p className="text-gray-900">None</p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">GitHub Links</p>
+                                    {selectedCertificate.githubLinks.length > 0 ? (
+                                      <ul className="list-disc pl-5 text-gray-900">
+                                        {selectedCertificate.githubLinks.map((link, idx) => (
+                                          <li key={idx}>
+                                            <a
+                                              href={link}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-600 hover:underline"
+                                            >
+                                              Repo {idx + 1}
+                                            </a>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p className="text-gray-900">None</p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Hosted Website</p>
+                                    {selectedCertificate.hostedWebsite ? (
+                                      <a
+                                        href={selectedCertificate.hostedWebsite}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                      >
+                                        {selectedCertificate.hostedWebsite}
+                                      </a>
+                                    ) : (
+                                      <p className="text-gray-900">None</p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Experience Link</p>
+                                    {selectedCertificate.experienceLink ? (
+                                      <a
+                                        href={selectedCertificate.experienceLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                      >
+                                        {selectedCertificate.experienceLink}
+                                      </a>
+                                    ) : (
+                                      <p className="text-gray-900">None</p>
+                                    )}
+                                  </div>                                
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-gray-600">No details available</p>
+                            )}
+                          </DialogContent>
+                        </Dialog>
                       </div>
 
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
