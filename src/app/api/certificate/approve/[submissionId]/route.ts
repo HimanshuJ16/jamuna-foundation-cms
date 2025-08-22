@@ -61,14 +61,13 @@ export async function GET(
     }
 
     return NextResponse.json({
-      success: true,
       isApproved: certificate.approved,
       message: `Certificate is ${certificate.approved ? "approved" : "not approved"}`,
     });
   } catch (error) {
     console.error("Error checking certificate approval:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to check certificate approval" },
+      { isApproved: false, message: "Failed to check certificate approval" },
       { status: 500 }
     );
   }
