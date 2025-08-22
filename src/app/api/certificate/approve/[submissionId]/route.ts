@@ -39,3 +39,37 @@ export async function PATCH(
     )
   }
 }
+
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ submissionId: string }> }
+) {
+  try {
+    const { submissionId } = await context.params;
+
+    // Check if certificate exists
+    const certificate = await prisma.certificate.findUnique({
+      where: { submissionId },
+      select: { approved: true }, // Only select the approved field
+    });
+
+    if (!certificate) {
+      return NextResponse.json(
+        { success: false, message: "Certificate not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      isApproved: certificate.approved,
+      message: `Certificate is ${certificate.approved ? "approved" : "not approved"}`,
+    });
+  } catch (error) {
+    console.error("Error checking certificate approval:", error);
+    return NextResponse.json(
+      { success: false, message: "Failed to check certificate approval" },
+      { status: 500 }
+    );
+  }
+}
