@@ -168,6 +168,9 @@ export async function POST(request: NextRequest) {
     const baseUrl = request.nextUrl.origin
     const downloadUrl = `${baseUrl}/api/certificate/download-certificate/${submission_id}`
     const viewUrl = `${baseUrl}/api/certificate/view-certificate/${submission_id}`
+    const date = new Date(end_date);
+    date.setDate(date.getDate() + 3);
+    const issueDate = date.toISOString();  
 
     return NextResponse.json({
       success: true,
@@ -176,6 +179,7 @@ export async function POST(request: NextRequest) {
       domain,
       certificateUrl: downloadUrl,
       viewUrl: viewUrl,
+      issueDate: issueDate,
       debug: {
         pdfSize: pdfBuffer.length,
         fileName,

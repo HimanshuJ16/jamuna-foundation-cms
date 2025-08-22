@@ -279,9 +279,13 @@ export default function CertificatePage() {
                             <p className="font-semibold text-gray-700">Candidate</p>
                             <p className="text-gray-900">{response.candidateName}</p>
                           </div>
-                          <div className="p-3 bg-white/60 rounded-lg md:col-span-2">
+                          <div className="p-3 bg-white/60 rounded-lg">
                             <p className="font-semibold text-gray-700">Domain</p>
                             <p className="text-gray-900">{response.domain}</p>
+                          </div>
+                          <div className="p-3 bg-white/60 rounded-lg">
+                            <p className="font-semibold text-gray-700">Issue Date</p>
+                            <p className="text-gray-900">{response.issueDate}</p>
                           </div>
                         </div>
 
@@ -438,7 +442,8 @@ export default function CertificatePage() {
   "candidateName": "Himanshu Jangir",
   "domain": "Artificial Intelligence",
   "certificateUrl": "http://localhost:3000/api/certificate/download-certificate/38afcad3-f5d0-477d-b4e2-6a351912509d",
-  "viewUrl": "http://localhost:3000/api/certificate/view-certificate/38afcad3-f5d0-477d-b4e2-6a351912509d"
+  "viewUrl": "http://localhost:3000/api/certificate/view-certificate/38afcad3-f5d0-477d-b4e2-6a351912509d",
+  "issueDate": "2025-09-02T00:00:00.000Z"
 }`}
                       className="font-mono text-sm"
                       rows={12}
