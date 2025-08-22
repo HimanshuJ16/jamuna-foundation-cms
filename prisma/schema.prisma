@@ -58,6 +58,7 @@ model Certificate {
   githubTask5        String?
   hostedWebsite      String?
   experienceLink     String?
+  approved           Boolean  @default(false)
   orderId            String?
   razorpayPaymentId  String?
   status             String?
