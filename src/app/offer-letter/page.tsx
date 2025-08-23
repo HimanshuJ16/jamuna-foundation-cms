@@ -45,16 +45,12 @@ export default function Component() {
 
       if (res.ok) {
         setResponse(data)
-        toast("Success!", {
-          description: "Offer letter generated successfully",
-        })
+        toast.success("Offer letter generated successfully")
       } else {
         throw new Error(data.error || "Failed to generate offer letter")
       }
     } catch (error) {
-      toast("Error", {
-        description: error instanceof Error ? error.message : "Failed to generate offer letter",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to generate offer letter")
     } finally {
       setLoading(false)
     }

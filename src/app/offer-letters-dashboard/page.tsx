@@ -99,15 +99,11 @@ export default function OfferLettersDashboard() {
         setOfferLetters(data.offerLetters)
         setPagination(data.pagination)
       } else {
-        toast("Error", {
-          description: data.message || "Failed to fetch offer letters",
-        })
+        toast.error("Failed to fetch offer letters")
       }
     } catch (error) {
       console.error("Error fetching offer letters:", error)
-      toast("Error", {
-        description: "Failed to fetch offer letters",
-      })
+      toast.error("Failed to fetch offer letters")
     } finally {
       setLoading(false)
     }
@@ -124,19 +120,12 @@ export default function OfferLettersDashboard() {
       const data = await response.json()
 
       if (data.success) {
-        toast("Success", {
-          description: "Offer letter approved successfully",
-        })
         fetchOfferLetters()
       } else {
-        toast("Error", {
-          description: data.message || "Failed to approve offer letter",
-        })
+        toast.error(data.message || "Failed to approve offer letter")
       }
     } catch (error) {
-      toast("Error", {
-        description: "Failed to approve offer letter",
-      })
+      toast.error("Failed to approve offer letter")
     }
   }
 
@@ -150,15 +139,11 @@ export default function OfferLettersDashboard() {
         setSelectedOfferLetter(data.offerLetter)
         setDialogOpen(true)
       } else {
-        toast("Error", {
-          description: data.message || "Failed to fetch offer letter details",
-        })
+        toast.error("Failed to fetch offer letter details")
       }
     } catch (error) {
       console.error("Error fetching offer letter details:", error)
-      toast("Error", {
-        description: "Failed to fetch offer letter details",
-      })
+      toast.error("Failed to fetch offer letter details")
     } finally {
       setDialogLoading(false)
     }
@@ -358,7 +343,15 @@ export default function OfferLettersDashboard() {
                     <div className="flex flex-wrap gap-3">
                       {!letter.approved && activeTab === "pending" && (
                         <Button
-                          onClick={() => handleApprove(letter.submissionId)}
+                          onClick={() => 
+                            toast.promise(handleApprove(letter.submissionId), {
+                              loading: 'Approving offer letter...',
+                              success: () => {
+                                return 'Offer letter approved successfully';
+                              },
+                              error: 'Failed to approve offer letter',
+                            })
+                          }
                           className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                         >
                           <CheckCircle className="w-4 h-4 mr-2" />

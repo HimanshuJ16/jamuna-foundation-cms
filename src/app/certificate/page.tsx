@@ -70,16 +70,12 @@ export default function CertificatePage() {
 
       if (res.ok) {
         setResponse(data)
-        toast("Success!", {
-          description: "Certificate generated successfully",
-        })
+        toast.success("Certificate generated successfully")
       } else {
         throw new Error(data.error || "Failed to generate certificate")
       }
     } catch (error) {
-      toast("Error", {
-        description: error instanceof Error ? error.message : "Failed to generate certificate",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to generate certificate")
     } finally {
       setLoading(false)
     }

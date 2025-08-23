@@ -124,15 +124,11 @@ export default function CertificatesDashboard() {
         setCertificates(data.certificates)
         setPagination(data.pagination)
       } else {
-        toast("Error", {
-          description: data.message || "Failed to fetch certificates",
-        })
+        toast.error(data.message || "Failed to fetch certificates")
       }
     } catch (error) {
       console.error("Error fetching certificates:", error)
-      toast("Error", {
-        description: "Failed to fetch certificates",
-      })
+      toast.error("Failed to fetch certificates")
     } finally {
       setLoading(false)
     }
@@ -149,19 +145,12 @@ export default function CertificatesDashboard() {
       const data = await response.json()
 
       if (data.success) {
-        toast("Success", {
-          description: "Certificate approved successfully",
-        })
         fetchCertificates()
       } else {
-        toast("Error", {
-          description: data.message || "Failed to approve certificate",
-        })
+        toast.error(data.message || "Failed to approve certificate")
       }
     } catch (error) {
-      toast("Error", {
-        description: "Failed to approve certificate",
-      })
+      toast.error("Failed to approve certificate")
     }
   }
 
@@ -175,15 +164,11 @@ export default function CertificatesDashboard() {
         setSelectedCertificate(data.certificate)
         setDialogOpen(true)
       } else {
-        toast("Error", {
-          description: data.message || "Failed to fetch certificate details",
-        })
+        toast.error(data.message || "Failed to fetch certificate details")
       }
     } catch (error) {
       console.error("Error fetching certificate details:", error)
-      toast("Error", {
-        description: "Failed to fetch certificate details",
-      })
+      toast.error("Failed to fetch certificate details")
     } finally {
       setDialogLoading(false)
     }
@@ -412,7 +397,15 @@ export default function CertificatesDashboard() {
 
                       <div className="flex flex-wrap gap-3">
                         <Button
-                          onClick={() => handleApprove(cert.submissionId)}
+                          onClick={() =>                             
+                            toast.promise(handleApprove(cert.submissionId), {
+                              loading: 'Approving certificate...',
+                              success: () => {
+                                return 'Certificate approved successfully';
+                              },
+                              error: 'Failed to approve certificate',
+                            })
+                          }
                           className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                         >
                           <CheckCircle className="w-4 h-4 mr-2" />
