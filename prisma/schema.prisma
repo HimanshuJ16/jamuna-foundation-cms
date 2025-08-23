@@ -28,6 +28,7 @@ model OfferLetter {
   joinedLinkedin       String?
   resume               String?
   signature            String?
+  approved             Boolean  @default(false)
   cloudinaryUrl        String
   submissionDateTime   DateTime
   createdAt            DateTime @default(now())

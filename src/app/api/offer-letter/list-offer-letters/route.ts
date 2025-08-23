@@ -8,16 +8,21 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "10")
-    const domain = searchParams.get("domain")
-    const search = searchParams.get("search")
+    const domain = searchParams.get("domain") || ""
+    const search = searchParams.get("search") || ""
+    const approved = searchParams.get("approved") === "true" // Parse approved as boolean
 
     const skip = (page - 1) * limit
 
     // Build where clause
-    const where: any = {}
-    if (domain) {
+    const where: any = {
+      approved, // Filter by approval status
+    }
+
+    if (domain && domain !== "All domains") {
       where.domain = domain
     }
+
     if (search) {
       where.OR = [
         { firstName: { contains: search, mode: "insensitive" } },
@@ -29,37 +34,37 @@ export async function GET(request: NextRequest) {
 
     // Get offer letters with pagination
     const [offerLetters, total] = await Promise.all([
-      prisma.offerLetter
-        .findMany({
-          where,
-          select: {
-            id: true,
-            submissionId: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            domain: true,
-            startDate: true,
-            endDate: true,
-            college: true,
-            academicQualification: true,
-            currentSemester: true,
-            phoneNumber: true,
-            gender: true,
-            joinedLinkedin: true,
-            learnAboutUs: true,
-            resume: true,
-            signature: true,
-            createdAt: true,
-          },
-          orderBy: { createdAt: "desc" },
-          skip,
-          take: limit,
-        })
-        .catch(() => []),
+      prisma.offerLetter.findMany({
+        where,
+        select: {
+          id: true,
+          submissionId: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          domain: true,
+          startDate: true,
+          endDate: true,
+          college: true,
+          academicQualification: true,
+          currentSemester: true,
+          phoneNumber: true,
+          gender: true,
+          joinedLinkedin: true,
+          learnAboutUs: true,
+          resume: true,
+          signature: true,
+          approved: true, // Include approved field
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }).catch(() => []),
       prisma.offerLetter.count({ where }).catch(() => 0),
     ])
 
+    // Process offer letters to include additional info
     const processedLetters = offerLetters.map((letter) => ({
       ...letter,
       candidateName: `${letter.firstName} ${letter.lastName}`,
@@ -86,7 +91,9 @@ export async function GET(request: NextRequest) {
         error: "Failed to list offer letters",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 },
+      { status: 500 }
     )
+  } finally {
+    await prisma.$disconnect()
   }
 }

@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 
 export async function GET(request: NextRequest, { params }: any) {
   try {
-    const { id: submissionId } = params
+    const { id: submissionId } = await params
 
     // Find the offer letter record with all stored details
     const offerLetter = await prisma.offerLetter

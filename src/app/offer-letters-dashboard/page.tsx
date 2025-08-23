@@ -1,14 +1,36 @@
+// Updated File: app/offer-letters/page.tsx
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Download, Eye, ExternalLink, Search, Filter, Users, Calendar, RefreshCw } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  FileText,
+  Download,
+  Eye,
+  ExternalLink,
+  Search,
+  Filter,
+  Users,
+  Calendar,
+  RefreshCw,
+  CheckCircle,
+  Award,
+} from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Navbar } from "@/components/Navbar"
+import { toast } from "sonner"
 
 interface OfferLetter {
   id: string
@@ -19,7 +41,32 @@ interface OfferLetter {
   college: string | null
   academicQualification: string | null
   currentSemester: string | null
+  approved: boolean
   createdAt: string
+}
+
+interface OfferLetterDetails {
+  id: string
+  submissionId: string
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  domain: string
+  startDate: string
+  endDate: string
+  college: string | null
+  academicQualification: string | null
+  currentSemester: string | null
+  learnAboutUs: string | null
+  gender: string | null
+  joinedLinkedin: string | null
+  resume: string | null
+  signature: string | null
+  cloudinaryUrl: string
+  submissionDateTime: string
+  createdAt: string
+  candidateName: string
 }
 
 export default function OfferLettersDashboard() {
@@ -29,6 +76,10 @@ export default function OfferLettersDashboard() {
   const [search, setSearch] = useState("")
   const [domain, setDomain] = useState("All domains")
   const [pagination, setPagination] = useState<any>({})
+  const [activeTab, setActiveTab] = useState("pending")
+  const [selectedOfferLetter, setSelectedOfferLetter] = useState<OfferLetterDetails | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogLoading, setDialogLoading] = useState(false)
 
   const fetchOfferLetters = async () => {
     setLoading(true)
@@ -38,6 +89,7 @@ export default function OfferLettersDashboard() {
         limit: "10",
         ...(search && { search }),
         ...(domain !== "All domains" && { domain }),
+        approved: activeTab === "approved" ? "true" : "false",
       })
 
       const response = await fetch(`/api/offer-letter/list-offer-letters?${params}`)
@@ -46,17 +98,75 @@ export default function OfferLettersDashboard() {
       if (data.success) {
         setOfferLetters(data.offerLetters)
         setPagination(data.pagination)
+      } else {
+        toast("Error", {
+          description: data.message || "Failed to fetch offer letters",
+        })
       }
     } catch (error) {
       console.error("Error fetching offer letters:", error)
+      toast("Error", {
+        description: "Failed to fetch offer letters",
+      })
     } finally {
       setLoading(false)
     }
   }
 
+  const handleApprove = async (submissionId: string) => {
+    try {
+      const response = await fetch(`/api/offer-letter/approve/${submissionId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        toast("Success", {
+          description: "Offer letter approved successfully",
+        })
+        fetchOfferLetters()
+      } else {
+        toast("Error", {
+          description: data.message || "Failed to approve offer letter",
+        })
+      }
+    } catch (error) {
+      toast("Error", {
+        description: "Failed to approve offer letter",
+      })
+    }
+  }
+
+  const fetchOfferLetterDetails = async (submissionId: string) => {
+    setDialogLoading(true)
+    try {
+      const response = await fetch(`/api/offer-letter/get-offer-letter-details/${submissionId}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setSelectedOfferLetter(data.offerLetter)
+        setDialogOpen(true)
+      } else {
+        toast("Error", {
+          description: data.message || "Failed to fetch offer letter details",
+        })
+      }
+    } catch (error) {
+      console.error("Error fetching offer letter details:", error)
+      toast("Error", {
+        description: "Failed to fetch offer letter details",
+      })
+    } finally {
+      setDialogLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchOfferLetters()
-  }, [page, search, domain])
+  }, [page, search, domain, activeTab])
 
   const handleSearch = (value: string) => {
     setSearch(value)
@@ -139,14 +249,12 @@ export default function OfferLettersDashboard() {
                   <SelectContent>
                     <SelectItem value="All domains">All domains</SelectItem>
                     <SelectItem value="Web Development">Web Development</SelectItem>
-                    <SelectItem value="Mobile Development">Mobile Development</SelectItem>
+                    <SelectItem value="Android App Development">Android App Development</SelectItem>
                     <SelectItem value="Data Science">Data Science</SelectItem>
-                    <SelectItem value="Machine Learning">Machine Learning</SelectItem>
-                    <SelectItem value="Artificial Intelligence">Artificial Intelligence</SelectItem>
                     <SelectItem value="UI/UX Design">UI/UX Design</SelectItem>
-                    <SelectItem value="Digital Marketing">Digital Marketing</SelectItem>
-                    <SelectItem value="DevOps">DevOps</SelectItem>
-                    <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
+                    <SelectItem value="Machine Learning">Machine Learning</SelectItem>
+                    <SelectItem value="Python Programming">Python Programming</SelectItem>
+                    <SelectItem value="C++ Programming">C++ Programming</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -165,132 +273,245 @@ export default function OfferLettersDashboard() {
           </CardContent>
         </Card>
 
-        {/* Offer Letters List */}
-        <div className="space-y-6">
-          {loading ? (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <TabsList className="grid w-full max-w-md grid-cols-2 bg-gray-100">
+            <TabsTrigger value="pending" className="data-[state=active]:bg-indigo-100 data-[state=active]:text-indigo-800">
+              Pending Approval
+            </TabsTrigger>
+            <TabsTrigger value="approved" className="data-[state=active]:bg-indigo-100 data-[state=active]:text-indigo-800">
+              Approved
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value={activeTab} className="space-y-6">
+            {loading ? (
+              <div className="text-center py-16">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+                </div>
+                <p className="text-gray-600 text-lg">Loading offer letters...</p>
               </div>
-              <p className="text-gray-600 text-lg">Loading offer letters...</p>
-            </div>
-          ) : offerLetters.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-8 h-8 text-gray-400" />
+            ) : offerLetters.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Award className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-500 text-lg">No pending offer letters found</p>
+                <p className="text-gray-400 text-sm mt-2">Try adjusting your search criteria</p>
               </div>
-              <p className="text-gray-500 text-lg">No offer letters found</p>
-              <p className="text-gray-400 text-sm mt-2">Try adjusting your search criteria</p>
-            </div>
-          ) : (
-            offerLetters.map((letter, index) => (
-              <Card
-                key={letter.id}
-                className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-              >
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                        {letter.candidateName.charAt(0)}
+            ) : (
+              offerLetters.map((letter, index) => (
+                <Card 
+                  key={letter.id} 
+                  className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                          {letter.candidateName.charAt(0)}
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-1">{letter.candidateName}</h3>
+                          <p className="text-gray-600 mb-1">{letter.email}</p>
+                          <p className="text-sm text-gray-500">ID: {letter.submissionId}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-1">{letter.candidateName}</h3>
-                        <p className="text-gray-600 mb-1">{letter.email}</p>
-                        <p className="text-sm text-gray-500">ID: {letter.submissionId}</p>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="secondary"
+                          className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200"
+                        >
+                          {letter.domain}
+                        </Badge>
+                        {letter.approved && (
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Approved
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                    <Badge
-                      variant="secondary"
-                      className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200"
-                    >
-                      {letter.domain}
-                    </Badge>
-                  </div>
 
-                  {(letter.college || letter.academicQualification || letter.currentSemester) && (
-                    <div className="grid gap-3 md:grid-cols-3 mb-6 p-4 bg-gray-50 rounded-lg">
-                      {letter.college && (
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm text-gray-700">{letter.college}</span>
-                        </div>
+                    {(letter.college || letter.academicQualification || letter.currentSemester) && (
+                      <div className="grid gap-3 md:grid-cols-3 mb-6 p-4 bg-gray-50 rounded-lg">
+                        {letter.college && (
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-700">{letter.college}</span>
+                          </div>
+                        )}
+                        {letter.academicQualification && (
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-700">{letter.academicQualification}</span>
+                          </div>
+                        )}
+                        {letter.currentSemester && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-700">Semester {letter.currentSemester}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-3">
+                      {!letter.approved && activeTab === "pending" && (
+                        <Button
+                          onClick={() => handleApprove(letter.submissionId)}
+                          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Approve
+                        </Button>
                       )}
-                      {letter.academicQualification && (
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm text-gray-700">{letter.academicQualification}</span>
-                        </div>
-                      )}
-                      {letter.currentSemester && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm text-gray-700">Semester {letter.currentSemester}</span>
-                        </div>
-                      )}
+                      <Button
+                        asChild
+                        variant={activeTab === "approved" ? "default" : "outline"}
+                        className={activeTab === "approved" ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" : "border-2 hover:bg-green-50 hover:border-green-300 bg-transparent"}
+                      >
+                        <a
+                          href={`/api/offer-letter/download-offer-letter/${letter.submissionId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Download
+                        </a>
+                      </Button>
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="border-2 hover:bg-blue-50 hover:border-blue-300 bg-transparent"
+                      >
+                        <a
+                          href={`/api/offer-letter/view-offer-letter/${letter.submissionId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View
+                        </a>
+                      </Button>
+                      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="border-2 hover:bg-purple-50 hover:border-purple-300 bg-transparent"
+                            onClick={() => fetchOfferLetterDetails(letter.submissionId)}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Details
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[80vh] bg-white/90 backdrop-blur-sm">
+                          <DialogHeader>
+                            <DialogTitle className="text-2xl font-bold text-gray-900">
+                              Offer Letters Details
+                            </DialogTitle>
+                          </DialogHeader>
+                          {dialogLoading ? (
+                            <div className="text-center py-8">
+                              <RefreshCw className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
+                              <p className="text-gray-600 mt-4">Loading details...</p>
+                            </div>
+                          ) : selectedOfferLetter ? (
+                            <div>
+                              <div className="grid gap-6 md:grid-cols-2 mt-6">
+                                <div className="space-y-4">
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Submission ID</p>
+                                    <p className="text-gray-900">{selectedOfferLetter.submissionId}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Email</p>
+                                    <p className="text-gray-900">{selectedOfferLetter.email || "N/A"}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Phone Number</p>
+                                    <p className="text-gray-900">{selectedOfferLetter.phoneNumber || "N/A"}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Domain</p>
+                                    <p className="text-gray-900">{selectedOfferLetter.domain}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Start Date</p>
+                                    <p className="text-gray-900">{new Date(selectedOfferLetter.startDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">End Date</p>
+                                    <p className="text-gray-900">{new Date(selectedOfferLetter.endDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Resume</p>
+                                    {selectedOfferLetter.resume ? (
+                                      <a
+                                        href={selectedOfferLetter.resume}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                      >
+                                        View Resume
+                                      </a>
+                                    ) : (
+                                      <p className="text-gray-900">None</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="space-y-4">
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">College</p>
+                                    <p className="text-gray-900">{selectedOfferLetter.college || "N/A"}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Academic Qualification</p>
+                                    <p className="text-gray-900">{selectedOfferLetter.academicQualification || "N/A"}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Current Semester</p>
+                                    <p className="text-gray-900">{selectedOfferLetter.currentSemester || "N/A"}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Learn About Us</p>
+                                    <p className="text-gray-900">{selectedOfferLetter.learnAboutUs || "N/A"}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Gender</p>
+                                    <p className="text-gray-900">{selectedOfferLetter.gender || "N/A"}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-700">Joined LinkedIn</p>
+                                    <p className="text-gray-900">{selectedOfferLetter.joinedLinkedin || "N/A"}</p>
+                                  </div>
+                                </div>
+                              </div>                              
+                            </div>
+                          ) : (
+                            <p className="text-gray-600">No details available</p>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                      
                     </div>
-                  )}
 
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      asChild
-                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                    >
-                      <a
-                        href={`/api/offer-letter/download-offer-letter/${letter.submissionId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download
-                      </a>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="border-2 hover:bg-blue-50 hover:border-blue-300 bg-transparent"
-                    >
-                      <a
-                        href={`/api/offer-letter/view-offer-letter/${letter.submissionId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        View
-                      </a>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="border-2 hover:bg-purple-50 hover:border-purple-300 bg-transparent"
-                    >
-                      <a
-                        href={`/api/offer-letter/get-offer-letter-details/${letter.submissionId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Details
-                      </a>
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                    <div className="text-xs text-gray-500">
-                      Created:{" "}
-                      {new Date(letter.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                      <div className="text-xs text-gray-500">
+                        Created:{" "}
+                        {new Date(letter.createdAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-400">#{index + 1 + (page - 1) * 10}</div>
                     </div>
-                    <div className="text-xs text-gray-400">#{index + 1 + (page - 1) * 10}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
