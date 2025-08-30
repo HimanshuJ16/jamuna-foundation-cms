@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
 
     // Basic input validation
     if (!id || !candidateName || !email) {
+      console.error("Missing required query parameters: id, candidateName, email");
       return NextResponse.json(
         { error: "Missing required query parameters: id, candidateName, email" },
         { status: 400 }
@@ -32,8 +33,10 @@ export async function GET(req: NextRequest) {
       domain || ""
     );
 
+    console.log("📧 Email sent successfully");
     return NextResponse.json({ sent: true }, { status: 200 });
   } catch (error) {
+    console.error("Failed to send internship certificate email", error);
     return NextResponse.json(
       { error: "Failed to send internship certificate email" },
       { status: 500 }
