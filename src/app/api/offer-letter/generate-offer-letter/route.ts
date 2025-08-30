@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
 import { generateOfferLetterPDF } from "@/lib/offer-letter-generator"
 import { uploadToCloudinary } from "@/lib/cloudinary-storage"
+import { sendInternshipApplicationEmail } from "@/lib/email"
 
 const prisma = new PrismaClient()
 
@@ -163,6 +164,14 @@ export async function POST(request: NextRequest) {
           signature: signature || "",
         },
       })
+
+      // Send the email after successfully creating the offer letter in the DB
+      await sendInternshipApplicationEmail(
+        id,
+        formattedFirstName,
+        email || "himanshujangir16@gmail.com",
+        domain
+      );
     } catch (dbError) {
       console.warn("⚠️ Database insert failed:", dbError)
     }
