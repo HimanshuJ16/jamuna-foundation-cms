@@ -8,132 +8,104 @@ export async function sendInternshipApplicationEmail(
 ) {
     const htmlContent = `
     <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Jamuna Foundation Internship Submission</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    /* Add your existing page, container, and body styles here... */
-    html, body { margin: 0; padding: 0; background: #f3f4f6; font-family: Arial, Helvetica, sans-serif; }
-    .container { max-width: 550px; margin: 24px auto 48px; background: #ffffff; border: 1px solid #e9e9e9; box-shadow: 0 0 5px rgba(0,0,0,0.04); border-radius: 4px; overflow: hidden; }
-    /* --- Styles for other sections of the email --- */
-    .id-line { font-size: 13px; color: #4b5563; text-align: right; padding: 18px 40px 0; }
-    .letterhead { padding: 10px 40px; }
-    .logo img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
-    .divider { border: none; border-top: 1px solid #d1d5db; margin: 8px 0 0; }
-    .body { padding: 28px 40px; font-size: 15px; line-height: 1.7; }
-    .signature { margin-top: 16px; font-weight: bold; }
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <title>Jamuna Foundation Internship Submission</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <style>
+        @media screen and (max-width:600px) {
+          .container { width:100% !important; }
+          .stack-column { display:block !important; width:100% !important; text-align:center !important; }
+        }
+      </style>
+    </head>
+    <body style="margin:0; padding:0; background-color:#f3f4f6; font-family: Arial, Helvetica, sans-serif;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#f3f4f6; padding:20px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="550" class="container" style="background-color:#ffffff; border:1px solid #e9e9e9; border-radius:4px;">
 
+              <!-- ID Line -->
+              <tr>
+                <td align="right" style="font-size:13px; color:#4b5563; padding:18px 40px 0;">
+                  Id: <strong>${id}</strong>
+                </td>
+              </tr>
 
-    /* --- NEW FOOTER STYLES --- */
-    .site-footer {
-      padding: 24px 40px;
-      border-top: 1px solid #e5e7eb;
-      font-size: 14px;
-      text-align: center;
-      color: #374151;
-    }
+              <!-- Logo -->
+              <tr>
+                <td align="center" style="padding:10px 40px;">
+                  <img src="https://ims.jamunafoundation.com/images/logo.png" alt="Jamuna Foundation logo" style="max-width:100%; height:auto; display:block;" />
+                </td>
+              </tr>
 
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr; /* Two equal columns */
-      align-items: center;
-      gap: 20px;
-    }
+              <!-- Divider -->
+              <tr>
+                <td style="padding:0 40px;">
+                  <hr style="border:none; border-top:1px solid #d1d5db; margin:0;" />
+                </td>
+              </tr>
 
-    .footer-section .label {
-      font-size: 13px;
-      color: #6b7280;
-      margin-bottom: 10px;
-      display: block;
-    }
+              <!-- Body -->
+              <tr>
+                <td style="padding:28px 40px; font-size:15px; line-height:1.7; color:#111827;">
+                  <p>Hi <strong>${firstName}</strong>,</p>
+                  <p>You have successfully submitted your application for an internship in this domain: <strong>${domain}</strong></p>
+                  <p>Someone will review your qualifications shortly. We will be in touch to schedule the next steps in the process.</p>
+                  <p>Thank you for your interest in Jamuna Foundation.</p>
+                  <p style="font-weight:bold; margin-top:16px;">Sincerely,<br/>Jamuna Foundation</p>
+                </td>
+              </tr>
 
-    .icon-links {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 16px;
-      list-style: none; /* Removes bullet points from ul */
-      padding: 0;
-      margin: 0;
-    }
-    
-    .icon-link {
-      display: inline-block;
-      text-decoration: none;
-      color: #111827;
-      font-weight: 600;
-      transition: transform 0.2s ease-out;
-    }
+              <!-- Footer -->
+              <tr>
+                <td style="padding:32px 40px; border-top:1px solid #e5e7eb;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                      <!-- Left: Social Links -->
+                      <td align="left" valign="top" class="stack-column" style="font-size:14px; color:#374151; padding-bottom:20px;">
+                        <div style="margin-bottom:10px; font-weight:500; text-align:center;">Visit our social accounts</div>
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+                          <tr>
+                            <td style="padding-right:14px;">
+                              <a href="https://www.facebook.com/jamunafoundationngo" target="_blank">
+                                <img src="https://ims.jamunafoundation.com/icons/facebook-logo.png" alt="Facebook" width="26" height="26" style="display:block;" />
+                              </a>
+                            </td>
+                            <td style="padding-right:14px;">
+                              <a href="https://www.linkedin.com/company/jamunafoundationngo/about/" target="_blank">
+                                <img src="https://ims.jamunafoundation.com/icons/linkedin-logo.png" alt="LinkedIn" width="26" height="26" style="display:block;" />
+                              </a>
+                            </td>
+                            <td>
+                              <a href="https://x.com/Jamuna_Ngo" target="_blank">
+                                <img src="https://ims.jamunafoundation.com/icons/x-logo.png" alt="X" width="26" height="26" style="display:block;" />
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
 
-    .icon-link:hover {
-      transform: translateY(-2px); /* Subtle lift effect */
-    }
-
-    .icon-link img {
-      filter: brightness(0);    
-      width: 24px;
-      height: 24px;
-      vertical-align: middle; /* Aligns icon with text */
-      margin-right: 6px; /* Space between icon and text */
-    }
-    
-    /* Responsive styles for the grid */
-    @media (max-width: 500px) {
-      .footer-grid {
-        grid-template-columns: 1fr; /* Stack columns on small screens */
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="id-line">Id: <strong>${id}</strong></div>
-    <div class="letterhead"><div class="logo"><img src="https://ims.jamunafoundation.com/images/logo.png" alt="Jamuna Foundation logo" /></div></div>
-    <hr class="divider" />
-    <div class="body">
-      <p>Hi <strong>${firstName}</strong>,</p>
-      <p>You have successfully submitted your application for an internship in this domain: <strong>${domain}</strong></p>
-      <p>Someone will review your qualifications shortly...</p>
-      <div class="signature">Sincerely,<br />Jamuna Foundation</div>
-    </div>
-    
-    <footer class="site-footer" role="contentinfo">
-      <div class="footer-grid">
-        <div class="footer-section">
-          <span class="label">Connect with us</span>
-          <ul class="icon-links">
-            <li>
-              <a href="https://www.facebook.com/jamunafoundationngo" class="icon-link" target="_blank" rel="noopener noreferrer" title="Facebook">
-                <img src="https://images.wixstatic.com/media/5e9922_549fe65f377b4459894488d785954edd~mv2.png" alt="Facebook icon" />
-              </a>
-            </li>
-            <li>
-              <a href="https://www.linkedin.com/company/jamunafoundationngo/about/" class="icon-link" target="_blank" rel="noopener noreferrer" title="LinkedIn">
-                <img src="https://images.wixstatic.com/media/5e9922_931f3e857768439bb9293a3039d6f9ef~mv2.png" alt="LinkedIn icon" />
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/Jamuna_Ngo" class="icon-link" target="_blank" rel="noopener noreferrer" title="X (Twitter)">
-                <img src="https://images.wixstatic.com/media/5e9922_64d32055fbe647738b345b72f05aef96~mv2.png" alt="X icon" />
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <div class="footer-section">
-          <span class="label">Official website</span>
-          <a href="https://www.jamunafoundation.com" class="icon-link" target="_blank" rel="noopener noreferrer">
-            <img src="https://images.wixstatic.com/media/b49ee3_dd9b1a8812ae41138409a667954a6088~mv2.png" alt="Website icon" />
-          </a>
-        </div>
-      </div>
-    </footer>
-
-  </div>
-</body>
-</html>
+                      <!-- Right: Website -->
+                      <td align="right" valign="top" class="stack-column" style="font-size:14px; color:#374151;">
+                        <div style="margin-bottom:10px; font-weight:500; text-align:center;">Check out our website</div>
+                        <div style="text-align:center;">
+                          <a href="https://www.jamunafoundation.com" target="_blank" style="font-size:14px; color:#111827; text-decoration:none; font-weight:500;">
+                            www.jamunafoundation.com
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr> 
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
   `;
 
     const mailOptions = {
