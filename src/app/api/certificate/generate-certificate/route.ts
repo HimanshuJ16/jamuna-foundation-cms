@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
 import { generateCertificatePDF } from "@/lib/certificate-generator"
 import { uploadCertificateToCloudinary } from "@/lib/cloudinary-storage"
+import { sendCertificateApplicationEmail } from "@/lib/email"
 
 const prisma = new PrismaClient()
 
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
 
     // Store in database (create table if it doesn't exist)
     try {
-      const certificate = await prisma.certificate.create({
+      await prisma.certificate.create({
         data: {
           submissionId: submission_id,
           firstName: formattedFirstName,
@@ -166,6 +167,15 @@ export async function POST(request: NextRequest) {
         },
       })
       console.log("✅ Certificate record saved to database with all links")
+
+      // Send the email after successfully creating the certificate in the DB
+      await sendCertificateApplicationEmail(
+        submission_id,
+        formattedFirstName,
+        donation,
+        email || "himanshujangir16@gmail.com",
+        domain
+      );
     } catch (dbError) {
       console.warn("⚠️ Could not save to database:", dbError)
       // Continue without database storage for now

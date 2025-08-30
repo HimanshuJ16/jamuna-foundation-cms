@@ -1,4 +1,4 @@
-import { sendInternshipConfirmationEmail } from "@/lib/email";
+import { sendCertificateConfirmationEmail } from "@/lib/email";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -7,10 +7,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     const candidateName = searchParams.get("candidateName");
-    const downloadUrl = searchParams.get("downloadUrl");
+    const certificateUrl = searchParams.get("certificateUrl");
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
-    const taskLink = searchParams.get("taskLink");
     const email = searchParams.get("email");
     const domain = searchParams.get("domain");
 
@@ -23,13 +22,12 @@ export async function GET(req: NextRequest) {
     }
 
     // Send the email
-    await sendInternshipConfirmationEmail(
+    await sendCertificateConfirmationEmail(
       id,
       candidateName,
-      downloadUrl || "", // Fallback to empty string if null
+      certificateUrl || "", // Fallback to empty string if null
       startDate || "",
       endDate || "",
-      taskLink || "",
       email,
       domain || ""
     );
@@ -37,7 +35,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ sent: true }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to send internship confirmation email" },
+      { error: "Failed to send internship certificate email" },
       { status: 500 }
     );
   }
