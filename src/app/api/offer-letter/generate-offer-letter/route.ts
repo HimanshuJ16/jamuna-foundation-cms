@@ -100,8 +100,10 @@ export async function POST(request: NextRequest) {
 
     if (day >= 1 && day <= 12) {
       startDate.setFullYear(year, month, 15)
-    } else {
+    } else if (day >= 13 && day <= 27) {
       startDate.setFullYear(year, month + 1, 1)
+    } else {
+      startDate.setFullYear(year, month + 1, 15)
     }
 
     let endDate: Date
