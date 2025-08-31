@@ -186,8 +186,14 @@ export async function POST(request: NextRequest) {
     const downloadUrl = `${baseUrl}/api/certificate/download-certificate/${submission_id}`
     const viewUrl = `${baseUrl}/api/certificate/view-certificate/${submission_id}`
     const date = new Date(end_date);
+    const randomHours = Math.floor(Math.random() * 24);
+    const randomMinutes = Math.floor(Math.random() * 60);
+    const randomSeconds = Math.floor(Math.random() * 60);
+    date.setHours(date.getHours() + randomHours);
+    date.setMinutes(date.getMinutes() + randomMinutes);
+    date.setSeconds(date.getSeconds() + randomSeconds);
     date.setDate(date.getDate() + 3);
-    const issueDate = date.toISOString();  
+    const issueDate = date.toISOString(); 
 
     return NextResponse.json({
       success: true,
