@@ -1,7 +1,7 @@
 import { sendCertificateConfirmationEmail } from "@/lib/email";
 import { type NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     // Extract query parameters from the URL
     const { searchParams } = new URL(req.url);
