@@ -1,43 +1,104 @@
 import { sendInternshipConfirmationEmail } from "@/lib/email";
 import { type NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    // Extract query parameters from the URL
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-    const candidateName = searchParams.get("candidateName");
-    const downloadUrl = searchParams.get("downloadUrl");
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
-    const taskLink = searchParams.get("taskLink");
-    const email = searchParams.get("email");
-    const domain = searchParams.get("domain");
+    let parsedData: any = {}
 
-    // Basic input validation
-    if (!id || !candidateName || !email) {
+    // Parse the request body
+    const contentType = request.headers.get("content-type") || ""
+    console.log("📥 Content-Type:", contentType)
+
+    if (contentType.includes("application/json")) {
+      console.log("📝 Parsing as JSON...")
+      const rawBody = await request.json()
+      console.log("🔍 Raw JSON body received:", JSON.stringify(rawBody, null, 2))
+
+      // Extract data from nested structure
+      parsedData = rawBody.data || rawBody
+    } else {
+      // Try form data
+      const formData = await request.formData()
+      for (const [key, value] of formData.entries()) {
+        parsedData[key] = value
+      }
+    }
+
+    console.log("📋 Parsed offer letter data:", parsedData)
+
+    // Extract required fields
+    const {
+      id,
+      candidateName,
+      downloadUrl,
+      startDate,
+      endDate,
+      taskLink,
+      email,
+      domain
+    } = parsedData
+
+    // Field-by-field validation with specific errors
+    const missing = [];
+    if (!id) missing.push("id");
+    if (!candidateName) missing.push("candidateName");
+    if (!email) missing.push("email");
+    if (missing.length > 0) {
+      console.error("Missing required parameters:", missing.join(", "));
       return NextResponse.json(
-        { error: "Missing required query parameters: id, candidateName, email" },
+        {
+          error: `Missing required query parameters: ${missing.join(", ")}`,
+        },
         { status: 400 }
       );
     }
 
-    // Send the email
-    await sendInternshipConfirmationEmail(
-      id,
-      candidateName,
-      downloadUrl || "", // Fallback to empty string if null
-      startDate || "",
-      endDate || "",
-      taskLink || "",
-      email,
-      domain || ""
-    );
+    // Simple type checks if needed (for example, id as string, email as valid email, etc.)
+    // Example: Validate email format
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      console.error("Invalid email format:", email);
+      return NextResponse.json(
+        {
+          error: "Invalid email format.",
+        },
+        { status: 400 }
+      );
+    }
 
+    // Try sending the email and catch possible issues from external libs
+    try {
+      await sendInternshipConfirmationEmail(
+        id,
+        candidateName,
+        downloadUrl,
+        startDate,
+        endDate,
+        taskLink,
+        email,
+        domain
+      );
+    } catch (sendError) {
+      console.error("Email sending failed:", sendError);
+      return NextResponse.json(
+        {
+          error: "Failed to send internship confirmation email",
+          details: sendError instanceof Error ? sendError.message : sendError,
+        },
+        { status: 502 }
+      );
+    }
+
+    console.log("📧 Email sent successfully for:", email);
     return NextResponse.json({ sent: true }, { status: 200 });
   } catch (error) {
+    // Final fallback for unanticipated server errors
+    console.error("Fatal server error:", error);
     return NextResponse.json(
-      { error: "Failed to send internship confirmation email" },
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : error,
+      },
       { status: 500 }
     );
   }
