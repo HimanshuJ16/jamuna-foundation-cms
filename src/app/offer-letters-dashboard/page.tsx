@@ -164,6 +164,26 @@ export default function OfferLettersDashboard() {
       month: "2-digit",
       year: "numeric",
     })
+
+    const downloadUrl = `https://ims.jamunafoundation.com/api/offer-letter/download-offer-letter/${offerLetter.submissionId}`
+
+    // ✅ Google Drive task link mapping
+    const taskLinksByDomain: Record<string, string> = {
+      "Web Development": "https://drive.google.com/file/d/1qHVRN5WSVr8wtBcGcm7WRWDtq7aDpaUW/view?usp=sharing",
+      "Android App Development": "https://drive.google.com/file/d/12yIhG_iDnKNQ8eBuwx-q1G6R6hU20F-5/view?usp=drive_link",
+      "Data Science": "https://drive.google.com/file/d/1t2yWQYlSLniWS4Xcc_m50gaP36PjN5ip/view?usp=drive_link",
+      "UI/UX Design": "https://drive.google.com/file/d/1DN8cfbh1Q-mooFmwpa5L74_eX-vf18rp/view?usp=drive_link",
+      "Machine Learning": "https://drive.google.com/file/d/1VMtWpsRez0a8PvGqNq696HIwtD6ZNXci/view?usp=drive_link",
+      "Python Programming": "https://drive.google.com/file/d/1wbrWmrAvl1tkbVyVUQnX06F3Sb_seAoq/view?usp=sharing",
+      "C++ Programming": "https://drive.google.com/file/d/1U3BsUNMI94lp8Ceg8mSmSVqzvUy4ctGj/view?usp=sharing",
+    }
+
+    // ✅ Fallback task link
+    const fallbackTaskLink = "https://drive.google.com/drive/folders/1h4SHZvmquQKFmHlt4M5jdjQ6vJ5POSDN?usp=sharing"
+
+    // ✅ Normalize domain & resolve task link
+    const normalizedDomain = offerLetter.domain.trim().toLowerCase()
+    const taskLink = Object.entries(taskLinksByDomain).find(([key]) => key.toLowerCase() === normalizedDomain)?.[1] || fallbackTaskLink 
     try {
       const response = await fetch("/api/offer-letter/send-offer-letter", {
         method: "POST",
@@ -173,10 +193,10 @@ export default function OfferLettersDashboard() {
         body: JSON.stringify({
           id: offerLetter.id,
           candidateName: offerLetter.candidateName,
-          downloadUrl: offerLetter.cloudinaryUrl,
+          downloadUrl: downloadUrl,
           startDate: formattedStartDate,
           endDate: formattedEndDate,
-          taskLink: "", // Add appropriate task link if available
+          taskLink: taskLink,
           email: offerLetter.email,
           domain: offerLetter.domain,
         }),
