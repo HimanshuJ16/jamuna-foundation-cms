@@ -75,6 +75,8 @@ export default function OfferLettersDashboard() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState("")
   const [domain, setDomain] = useState("All domains")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
   const [pagination, setPagination] = useState<any>({})
   const [activeTab, setActiveTab] = useState("pending")
   const [selectedOfferLetter, setSelectedOfferLetter] = useState<OfferLetterDetails | null>(null)
@@ -89,6 +91,8 @@ export default function OfferLettersDashboard() {
         limit: "10",
         ...(search && { search }),
         ...(domain !== "All domains" && { domain }),
+        ...(startDate && { startDate }),
+        ...(endDate && { endDate }),
         approved: activeTab === "approved" ? "true" : "false",
       })
 
@@ -140,7 +144,7 @@ export default function OfferLettersDashboard() {
         if (openDialog) {
           setDialogOpen(true)
         }
-        return data.offerLetter // Return data for email sending
+        return data.offerLetter
       } else {
         throw new Error("Failed to fetch offer letter details")
       }
@@ -167,7 +171,6 @@ export default function OfferLettersDashboard() {
 
     const downloadUrl = `https://ims.jamunafoundation.com/api/offer-letter/download-offer-letter/${offerLetter.submissionId}`
 
-    // ✅ Google Drive task link mapping
     const taskLinksByDomain: Record<string, string> = {
       "Web Development": "https://drive.google.com/file/d/1qHVRN5WSVr8wtBcGcm7WRWDtq7aDpaUW/view?usp=sharing",
       "Android App Development": "https://drive.google.com/file/d/12yIhG_iDnKNQ8eBuwx-q1G6R6hU20F-5/view?usp=drive_link",
@@ -178,10 +181,8 @@ export default function OfferLettersDashboard() {
       "C++ Programming": "https://drive.google.com/file/d/1U3BsUNMI94lp8Ceg8mSmSVqzvUy4ctGj/view?usp=sharing",
     }
 
-    // ✅ Fallback task link
     const fallbackTaskLink = "https://drive.google.com/drive/folders/1h4SHZvmquQKFmHlt4M5jdjQ6vJ5POSDN?usp=sharing"
 
-    // ✅ Normalize domain & resolve task link
     const normalizedDomain = offerLetter.domain.trim().toLowerCase()
     const taskLink = Object.entries(taskLinksByDomain).find(([key]) => key.toLowerCase() === normalizedDomain)?.[1] || fallbackTaskLink 
     try {
@@ -217,7 +218,7 @@ export default function OfferLettersDashboard() {
 
   useEffect(() => {
     fetchOfferLetters()
-  }, [page, search, domain, activeTab])
+  }, [page, search, domain, startDate, endDate, activeTab])
 
   const handleSearch = (value: string) => {
     setSearch(value)
@@ -226,6 +227,16 @@ export default function OfferLettersDashboard() {
 
   const handleDomainFilter = (value: string) => {
     setDomain(value)
+    setPage(1)
+  }
+
+  const handleStartDateChange = (value: string) => {
+    setStartDate(value)
+    setPage(1)
+  }
+
+  const handleEndDateChange = (value: string) => {
+    setEndDate(value)
     setPage(1)
   }
 
@@ -308,6 +319,32 @@ export default function OfferLettersDashboard() {
                     <SelectItem value="C++ Programming">C++ Programming</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="startDate" className="text-sm font-semibold text-gray-700">
+                  Start Date
+                </Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => handleStartDateChange(e.target.value)}
+                  className="h-11 border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endDate" className="text-sm font-semibold text-gray-700">
+                  End Date
+                </Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => handleEndDateChange(e.target.value)}
+                  className="h-11 border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                />
               </div>
 
               <div className="flex items-end">
