@@ -1,4 +1,3 @@
-// Updated File: app/offer-letters/page.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -21,6 +20,7 @@ import {
   RefreshCw,
   CheckCircle,
   Award,
+  Mail,
 } from "lucide-react"
 import {
   Dialog,
@@ -129,7 +129,7 @@ export default function OfferLettersDashboard() {
     }
   }
 
-  const fetchOfferLetterDetails = async (submissionId: string) => {
+  const fetchOfferLetterDetails = async (submissionId: string, openDialog: boolean = true) => {
     setDialogLoading(true)
     try {
       const response = await fetch(`/api/offer-letter/get-offer-letter-details/${submissionId}`)
@@ -137,15 +137,61 @@ export default function OfferLettersDashboard() {
 
       if (data.success) {
         setSelectedOfferLetter(data.offerLetter)
-        setDialogOpen(true)
+        if (openDialog) {
+          setDialogOpen(true)
+        }
+        return data.offerLetter // Return data for email sending
       } else {
-        toast.error("Failed to fetch offer letter details")
+        throw new Error("Failed to fetch offer letter details")
       }
     } catch (error) {
       console.error("Error fetching offer letter details:", error)
       toast.error("Failed to fetch offer letter details")
+      throw error
     } finally {
       setDialogLoading(false)
+    }
+  }
+
+  const handleSendEmail = async (offerLetter: OfferLetterDetails) => {
+    const formattedStartDate = new Date(offerLetter.startDate).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+    const formattedEndDate = new Date(offerLetter.endDate).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+    try {
+      const response = await fetch("/api/offer-letter/send-offer-letter", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: offerLetter.id,
+          candidateName: offerLetter.candidateName,
+          downloadUrl: offerLetter.cloudinaryUrl,
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
+          taskLink: "", // Add appropriate task link if available
+          email: offerLetter.email,
+          domain: offerLetter.domain,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.sent) {
+        toast.success("Internship confirmation email sent successfully")
+      } else {
+        throw new Error(data.error || "Failed to send email")
+      }
+    } catch (error) {
+      console.error("Error sending email:", error)
+      throw error
     }
   }
 
@@ -485,7 +531,25 @@ export default function OfferLettersDashboard() {
                           )}
                         </DialogContent>
                       </Dialog>
-                      
+                      {letter.approved && (
+                        <Button
+                          onClick={() => 
+                            toast.promise(
+                              fetchOfferLetterDetails(letter.submissionId, false).then((offerLetter) => 
+                                offerLetter && handleSendEmail(offerLetter)
+                              ), {
+                                loading: 'Sending email...',
+                                success: () => 'Email sent successfully',
+                                error: 'Failed to send email',
+                              })
+                          }
+                          className="border-2 hover:bg-orange-50 hover:border-orange-300 bg-transparent"
+                          variant="outline"
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          Send Email
+                        </Button>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
