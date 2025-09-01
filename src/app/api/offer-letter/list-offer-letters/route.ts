@@ -10,15 +10,13 @@ export async function GET(request: NextRequest) {
     const limit = Number.parseInt(searchParams.get("limit") || "10")
     const domain = searchParams.get("domain") || ""
     const search = searchParams.get("search") || ""
-    const approved = searchParams.get("approved") === "true"
-    const startDate = searchParams.get("startDate") || ""
-    const endDate = searchParams.get("endDate") || ""
+    const approved = searchParams.get("approved") === "true" // Parse approved as boolean
 
     const skip = (page - 1) * limit
 
     // Build where clause
     const where: any = {
-      approved,
+      approved, // Filter by approval status
     }
 
     if (domain && domain !== "All domains") {
@@ -32,17 +30,6 @@ export async function GET(request: NextRequest) {
         { email: { contains: search, mode: "insensitive" } },
         { submissionId: { contains: search, mode: "insensitive" } },
       ]
-    }
-
-    // Add date range filtering
-    if (startDate || endDate) {
-      where.createdAt = {}
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate)
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate)
-      }
     }
 
     // Get offer letters with pagination
@@ -67,7 +54,7 @@ export async function GET(request: NextRequest) {
           learnAboutUs: true,
           resume: true,
           signature: true,
-          approved: true,
+          approved: true, // Include approved field
           createdAt: true,
         },
         orderBy: { createdAt: "desc" },
