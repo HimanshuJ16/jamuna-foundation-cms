@@ -22,6 +22,7 @@ import {
   RefreshCw,
   TrendingUp,
   CheckCircle,
+  Mail,
 } from "lucide-react"
 import {
   Dialog,
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/dialog"
 import { Navbar } from "@/components/Navbar"
 import { toast } from "sonner"
+import { start } from "repl"
 
 interface Certificate {
   id: string
@@ -153,8 +155,51 @@ export default function CertificatesDashboard() {
       toast.error("Failed to approve certificate")
     }
   }
+  
+  const handleSendEmail = async (certificate: CertificateDetails) => {
+    const formattedStartDate = new Date(certificate.startDate).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })
+    const formattedEndDate = new Date(certificate.endDate).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })
 
-  const fetchCertificateDetails = async (submissionId: string) => {
+    const downloadUrl = `https://ims.jamunafoundation.com/api/certificate/download-certificate/${certificate.submissionId}`
+    try {
+      const response = await fetch("/api/certificate/send-certificate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: certificate.submissionId,
+          candidateName: certificate.candidateName,
+          certificateUrl: downloadUrl,
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
+          email: certificate.email,
+          domain: certificate.domain
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.sent) {
+        toast.success("Internship certificate email sent successfully")
+      } else {
+        throw new Error(data.error || "Failed to send email")
+      }
+    } catch (error) {
+      console.error("Error sending email:", error)
+      throw error
+    }
+  }
+
+  const fetchCertificateDetails = async (submissionId: string, openDialog: boolean = true) => {
     setDialogLoading(true)
     try {
       const response = await fetch(`/api/certificate/get-certificate-details/${submissionId}`)
@@ -162,13 +207,17 @@ export default function CertificatesDashboard() {
 
       if (data.success) {
         setSelectedCertificate(data.certificate)
-        setDialogOpen(true)
+        if (openDialog) {
+          setDialogOpen(true)
+        }
+          return data.certificate // Return data for email sending
       } else {
-        toast.error(data.message || "Failed to fetch certificate details")
+        throw new Error("Failed to fetch certificate details")
       }
     } catch (error) {
       console.error("Error fetching certificate details:", error)
       toast.error("Failed to fetch certificate details")
+      throw error
     } finally {
       setDialogLoading(false)
     }
@@ -893,6 +942,25 @@ export default function CertificatesDashboard() {
                             )}
                           </DialogContent>
                         </Dialog>
+                        {cert.approved && (
+                          <Button
+                            onClick={() => 
+                              toast.promise(
+                                fetchCertificateDetails(cert.submissionId, false).then((certificate) => 
+                                  certificate && handleSendEmail(certificate)
+                                ), {
+                                  loading: 'Sending email...',
+                                  success: () => 'Email sent successfully',
+                                  error: 'Failed to send email',
+                                })
+                            }
+                            className="border-2 hover:bg-orange-50 hover:border-orange-300 bg-transparent"
+                            variant="outline"
+                          >
+                            <Mail className="w-4 h-4 mr-2" />
+                            Send Email
+                          </Button>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
